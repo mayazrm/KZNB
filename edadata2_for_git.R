@@ -73,6 +73,7 @@ points(kzaf$segment, predict(kzafout))
 
 
 
-
+mean(kzaf$MeanSC)
+sd(kzaf$MeanSC)
 
 
