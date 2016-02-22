@@ -75,5 +75,6 @@ points(kzaf$segment, predict(kzafout))
 
 mean(kzaf$MeanSC)
 sd(kzaf$MeanSC)
+hist(kzaf$MeanSC)
 
 
