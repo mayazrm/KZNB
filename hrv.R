@@ -5,11 +5,6 @@
 #-------------------------------------------------------------------------------------------------------------
 setwd("C:/Users/Niall/Dropbox/NIALL1/MET/ppmc");
 hrv <- read.csv("ISP_HR_partialdata_long.csv")
-
-setwd("/Users/zeekatherine")
-hrv <- read.csv("/Users/zeekatherine/Desktop/Work:School/Graduate School/Columbia PhD/2016_5Spring/Psychophysiological_Methods/Class Materials/Data Analysis Materials/HRV ISP Data/ISP_HR_partialdata_long.csv")
-
-
 #-------------------------------------------------------------------------------------------------------------
 library(lme4)
 library(brms)
@@ -30,26 +25,12 @@ rsaout2<- lmer(RSA ~ Condition*phase + (1 + phase | subj), data = hrv)
 summary(rsaout2)
 Anova(rsaout2, type="3")
 
-##### Bayesian #####
-
-# be sure you have the "brms" library installed
 
 #Linear model with fixed intercept and slope using Bayesian estimation
 rsabrm0<- brm(RSA ~ Condition*phase, data = hrv)
 summary(rsabrm0)
 plot(rsabrm0)
-plot(marginal_effects(rsabrm0))
 
-#Model with random intercept and fixed slope using Bayesian estimation
-rsabrm1<- brm(RSA ~ Condition*phase + (1 | subj), data = hrv)
-summary(rsabrm1)
-plot(marginal_effects(rsabrm1))
-
-
-
-#Model with random intercept and random slope
-rsabrm2 <- brm(RSA ~ Condition*phase + (1 + phase | subj), data = hrv)
-summary(rsabrm2)
 
 
 #-------------------------------------------------------------------------------------------------------------
@@ -102,6 +83,4 @@ for (i in ordtime56$subj) {
   
 }
 dev.off()
-
-
 
