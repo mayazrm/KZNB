@@ -47,6 +47,8 @@ output: html_document
 4. Select the file you'd like to commit the changes to, and ensure the "stage" box is selected. Add your commit message, as above, and click "Commit." 
 5. Once you receive confirmation that your changes were committed, click "Push"
 
+# Troubleshooting
+* You may run in to problems "committing" and "pushing" if you haven't "pulled" recently enough. Try "pulling" if you have trouble completing those others steps.
 
 
 
