@@ -5,7 +5,7 @@ date: "March 6, 2016"
 output: html_document
 ---
 
-# Useful Links for setup:
+# Useful Info for setup:
 [Using Github with RStudio](http://www.molecularecologist.com/2013/11/using-github-with-r-and-rstudio/)
 
 # Setting Up a New Repository
@@ -29,14 +29,25 @@ output: html_document
 2. Save the file to your local machine. 
 3. Click on the "Git" tab in the Environment pane of RStudio. You should now see the new file listed. 
 4. Once you have made the changes to the script file: Tools > Version Control > Commit
-5. Select the new file from the list in the upper left corner. 
+5. Select the new file from the list in the upper left corner. Be sure the "Stage" box IS selected.
 6. **When committing a new script for the first time, also select the .Rproj from the list.
 7. Add a commit message describing the change (this will appear on Github with each change).
 8. Click "Commit"
 9. If necessary, enter your Github username and password.
-10. Go to Github or Github desktop to ensure that the script has now been added.
+10. Once you receive notification that the change was committed successfully, click "Push" so that the repository will update.
+11. Go to Github or Github desktop to ensure that the script has now been added.
 
 ** Not 100% sure yet if you have to do this at all, or if it needs to be done every time, or if it only needs to be done for a new script file. 
+
+# Working with an Existing Script in a Repository
+1. Select "Files" from the Plots, Packages, etc. pane
+2. Click on the script (.R) file you want to work with. It should open automatically if your .Rproj (repository) is already open
+2a. If your .Rproj is not already open, open that first on your machine (File > Open Project)
+3. Make your desired changes. Then "commit": Tools > Version Control > Commit
+4. Select the file you'd like to commit the changes to, and ensure the "stage" box is selected. Add your commit message, as above, and click "Commit." 
+5. Once you receive confirmation that your changes were committed, click "Push"
+
+
 
 
 
