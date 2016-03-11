@@ -4,8 +4,12 @@
 #-------------------------------------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------------------------------------
+#setwd("/Users/zeekatherine/Desktop/Work:School/Graduate School/Columbia PhD/2016_5Spring/Psychophysiological_Methods/Class Materials/Data Analysis Materials/HRV ISP Data")
 setwd("C:/Users/Niall/Dropbox/NIALL1/MET/ppmc");
 hrv <- na.omit(read.csv("ISP_HR_partialdata_long.csv"))
+
+library(car)
+library(lme4)
 
 hrv <- within(hrv, {
   phase6 <- Recode(time, 
@@ -30,6 +34,8 @@ rsaout2p6<- lmer(RSA ~ phase6*Condition + (phase6 | subj), data = hrv)
 summary(rsaout2p6)
 Anova(rsaout2p6, type="3")
 
+# can't find random.effects or fixed.effects
+
 #Pull random effects of time6 drop; add to fixed effect of drop (averaged over Inv, Vis)
 #Look at its distribution
 time6drop<- - 1.114 + random.effects(rsaout2p6)$subj[, 2]
@@ -39,6 +45,9 @@ densityPlot( ~ time6drop, bw="SJ", adjust=1.8, kernel="gaussian")
 #-------------------------------------------------------------------------------------------------------------
 #Phase6 Version: Panel Plots HRV vs. Time for subjects ordered by time 6 drop
 #-------------------------------------------------------------------------------------------------------------
+
+#need to define ordtime56
+
 pdf(file="Phase6-hrv-panel-HRV-vs-time-for-time6-drop.pdf", width=14, height=28)
 par(mfrow=c(11,7))
 for (i in ordtime56$subj) {
@@ -111,6 +120,8 @@ for (i in unique(hrv$subj[hrv$Condition=="Invisible"]))
 lines(predinv[, 1], predinv[, 2], lwd=5, col="red")
 abline(v=c(5, 6, 10))
 
+# "object 'predinv' not found"
+
 plot(hrv$time[hrv$Condition=="Visible"], hrv$RSA[hrv$Condition=="Visible"], ylab="HR Variability",
      xlab="Time", type="n", pch=4, xlim=c(0,13), ylim=c(0,10), main="Visible Condition")
 for (i in unique(hrv$subj[hrv$Condition=="Visible"]))
@@ -123,4 +134,5 @@ lines(predvis[, 1], predvis[, 2], lwd=5, col="red")
 abline(v=c(5, 6, 10))
 dev.off()
 
+"object 'predvis' not found"
 
