@@ -136,21 +136,21 @@ summary(lme(fixed=rt ~ valence + key + trial40c,  data=rndt, random= ~ 1 + valen
 ##### Only looking at traits rated as self-descriptive ######
 
 
-rndt2 <- subset(rndt, key == "up")
+rndtb2 <- subset(rndt, key == "up")
 
 # standard model 
-summary(lm(rt~valence + trial40c, data = rndt2))
+summary(lm(rt~valence + trial40c, data = rndtb2))
 
 #random intercept model
-summary(lme(fixed=rt ~ valence + trial40c,  data=rndt2, random= ~ 1 | id))
+summary(lme(fixed=rt ~ valence + trial40c,  data=rndtb2, random= ~ 1 | id))
 
 #random intercept & slope
-summary(lme(fixed=rt ~ valence + trial40c,  data=rndt2, random= ~ 1 + valence | id))
+summary(lme(fixed=rt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence | id))
 
 
 
 
-selfrelplot <- ggplot(data=rndt2, aes(x=valence, y=logrt)) +
+selfrelplot <- ggplot(data=rndtb2, aes(x=valence, y=logrt)) +
   geom_jitter(aes(color=as.factor(valence)), position = position_jitter(width = .2), size=1.5) +
   labs(title = "Log RT by Valence - Self-Relevant Traits Only", x="id", y="Log RT") +
   stat_summary(aes(group=valence), fun.y = mean, geom="point", colour="black", size=2) +
@@ -171,8 +171,38 @@ ggsave(selfrelplot, file = "selfrelplot.pdf", height = 40/2.54, width = 64/2.54)
 ###### Time Course #######
 
 # random slope and intercept for trial number
-summary(lme(fixed=rt ~ valence * trial40c,  data=rndt2, random= ~ trial40c | id))
+summary(lme(fixed=rt ~ valence * trial40c,  data=rndtb2, random= ~ trial40c | id))
 
+summary(lme(fixed=rt ~ valence * trial40c,  data=rndtb2, random= ~ valence * trial40c | id))
+
+
+
+####### Updates 160607 - Stricter Exclusion Cutoff ######
+
+
+# trimmed data: removed any < 100 ms and any greater than 2 SD above mean (1.29+.8*2=2.89)
+sd(rnd$rt) # SD = 0.80
+summary(rnd$rt) # M = 1.29
+rndtb <- subset(rnd, rt >= .01 & rt < 2.89)
+
+##log transform latency scores
+rndtb$logrt <- log(rndtb$rt)
+
+
+
+rndtb2 <- subset(rndtb, key == "up")
+
+# standard model -- Significant main effect of valence
+summary(lm(rt~valence + trial40c, data = rndtb2))
+
+#random intercept model
+summary(lme(fixed=rt ~ valence + trial40c,  data=rndtb2, random= ~ 1 | id))
+
+#random intercept & slope of valence
+summary(lme(fixed=rt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence | id))
+
+#random intercept & slope of valence and timee
+summary(lme(fixed=rt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence + trial40c | id))
 
 
 
