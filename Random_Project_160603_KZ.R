@@ -183,7 +183,12 @@ summary(lme(fixed=rt ~ valence * trial40c,  data=rndtb2, random= ~ valence * tri
 # trimmed data: removed any < 100 ms and any greater than 2 SD above mean (1.29+.8*2=2.89)
 sd(rnd$rt) # SD = 0.80
 summary(rnd$rt) # M = 1.29
-rndtb <- subset(rnd, rt >= .01 & rt < 2.89)
+
+quantile(rnd$rt, c(.90, .95, .99))
+
+rndtb <- subset(rnd, rt >= .01 & rt < 2)
+
+
 
 ##log transform latency scores
 rndtb$logrt <- log(rndtb$rt)
@@ -193,17 +198,26 @@ rndtb$logrt <- log(rndtb$rt)
 rndtb2 <- subset(rndtb, key == "up")
 
 # standard model -- Significant main effect of valence
-summary(lm(rt~valence + trial40c, data = rndtb2))
+summary(lm(logrt~valence + trial40c, data = rndtb2))
 
 #random intercept model
-summary(lme(fixed=rt ~ valence + trial40c,  data=rndtb2, random= ~ 1 | id))
+summary(lme(fixed=logrt ~ valence + trial40c,  data=rndtb2, random= ~ 1 | id))
 
 #random intercept & slope of valence
-summary(lme(fixed=rt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence | id))
+summary(lme(fixed=logrt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence | id))
 
 #random intercept & slope of valence and timee
-summary(lme(fixed=rt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence + trial40c | id))
+valenceslope <- (lme(fixed=logrt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence + trial40c | id))
+noslope <- (lme(fixed=logrt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + trial40c | id))
+# look at change in loglikelihood (multiply by -2?)
+# obtain degrees of freedom: 
+(-2*-101.7602) # this means that there is a need for random effects!
+(-2*-107.9709) # with random slope of valence, this means that there is a need for random effects!
+
+anova(valenceslope, noslope)
+# for tests on random effects: 
 
 
+# Examine distribution of random effects
 
 
