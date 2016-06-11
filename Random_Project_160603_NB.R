@@ -221,6 +221,9 @@ plot(density(vposranef$valencepositive))
 quantile(vposranef$valencepositive)
 Dotplot(vposranef$valencepositive)
 
+stripchart(vposranef$valencepositive, pch=21, bg="skyblue", cex=3.5, lwd=2,
+           xlim=c(-.20, .20), xlab="Trait Valence Effect", cex.axis=1.5, cex.lab=1.5)
+
 summary(noslope)
 
 # look at change in loglikelihood (multiply by -2?)
