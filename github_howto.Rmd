@@ -1,0 +1,55 @@
+---
+title: "Github Instructions"
+author: "Katherine Zee"
+date: "March 6, 2016"
+output: html_document
+---
+
+# Useful Info for setup:
+[Using Github with RStudio](http://www.molecularecologist.com/2013/11/using-github-with-r-and-rstudio/)
+
+# Setting Up a New Repository
+1. Log in to Github
+2. Click "New Repository"
+3. Enter Repository Name, Select Public/Private (note that Private Repositories are only available with a paid subscription), and select "Initialize with a README" if you like
+4. Copy the respository URL to your clipboard 
+5. Save it to Github Desktop (if using)
+
+
+# Working with Repository Contents in RStudio
+1. Open RStudio
+2. File > New Project > Version Control > Git
+3. Paste the respository URL into "Repository URL" box
+4. "Project directory name" should automatically populate with the respository name. If not, enter it manually.
+5. Click "Create Project"
+6. The project should now be open, as shown in the upper right corner next to the small image of "R" in a blue cube.
+
+# Adding a New Script to Repository
+1. With the relevant .Rproj file open (using steps described above), create a new script as you normally would.
+2. Save the file to your local machine. 
+3. Click on the "Git" tab in the Environment pane of RStudio. You should now see the new file listed. 
+4. Once you have made the changes to the script file: Tools > Version Control > Commit
+5. Select the new file from the list in the upper left corner. Be sure the "Stage" box IS selected.
+6. **When committing a new script for the first time, also select the .Rproj from the list.
+7. Add a commit message describing the change (this will appear on Github with each change).
+8. Click "Commit"
+9. If necessary, enter your Github username and password.
+10. Once you receive notification that the change was committed successfully, click "Push" so that the repository will update.
+11. Go to Github or Github desktop to ensure that the script has now been added.
+
+** Not 100% sure yet if you have to do this at all, or if it needs to be done every time, or if it only needs to be done for a new script file. 
+
+# Working with an Existing Script in a Repository
+1. Select "Files" from the Plots, Packages, etc. pane
+2. Click on the script (.R) file you want to work with. It should open automatically if your .Rproj (repository) is already open
+2a. If your .Rproj is not already open, open that first on your machine (File > Open Project)
+3. Make your desired changes. Then "commit": Tools > Version Control > Commit
+4. Select the file you'd like to commit the changes to, and ensure the "stage" box is selected. Add your commit message, as above, and click "Commit." 
+5. Once you receive confirmation that your changes were committed, click "Push"
+
+# Troubleshooting
+* You may run in to problems "committing" and "pushing" if you haven't "pulled" recently enough. Try "pulling" if you have trouble completing those others steps.
+
+
+
+
