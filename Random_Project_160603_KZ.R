@@ -235,3 +235,5 @@ anova(valenceslope, noslope)
 # Examine distribution of random effects
 
 #### Test update 160611 4:53 pm#####
+
+#### Update by NB 5:41pm 160611 #############
