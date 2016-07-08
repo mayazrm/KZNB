@@ -1,0 +1,16 @@
+{
+    "contents" : "# simulate the data\nN <- 200\nb <- c(0.5, 0.6, 0.7)\nx1 <- rnorm(N)  # continuous predictor\nx2 <- rep(0:1, each = 100)  # categorical predictor with 2 levels  \ng <- rep(1:20, each = 10)\nlibrary(mvtnorm)\nr <- rmvnorm(20, sigma = matrix(c(1,0.5,0.5,1), 2, 2))\ne <- rnorm(N, sd = 0.5)\ny <- rep(NA, 200)\nfor (i in 1:N) {\n  y[i] <- 2 + b[1]*x1[i] + b[2]*x2[i] + b[3] * x1[i] * x2[i] +\n    sum(r[g[i], ] * c(1, x1[i])) + e[i]\n}\ndata <- data.frame(y = y, x1 = x1, x2 = factor(x2), g = g)\n\n# fit the model\nlibrary(brms)\nmodel <- brm(y~ x1*x2 +(1+x1|g), data = data, chains=2, cores=4)\nsummary(model)\n\n# plot marginal effects separately for each level of g\nplot(marginal_effects(model, conditions = data.frame(g = 1:20, x1 = 0, x2 = 1),\n                      re_formula = NULL), points = TRUE)\n\n# shows the effect x2 for some values of x1 ignoring random effects\nconditions1 <- data.frame(x1 = seq(-2, 2, 0.5))\nrownames(conditions1) <- paste(\"x1 =\", conditions1$x1)\nplot(marginal_effects(model, effects = \"x2\", conditions = conditions1),\n     points = TRUE)\n# shows the effect x1 for both values of x2 ignoring random effects\nconditions2 <- data.frame(x2 = 0:1)\nrownames(conditions2) <- paste(\"x2 =\", conditions2$x2)\nplot(marginal_effects(model, effects = \"x1\", conditions = conditions2,\n                      re_formula = NULL), points = TRUE)\n\n",
+    "created" : 1465678384602.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1817578284",
+    "id" : "4F6BCCAF",
+    "lastKnownWriteTime" : 1465678501,
+    "path" : "~/KZNB/marginal_effects_example_1.R",
+    "project_path" : "marginal_effects_example_1.R",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}
