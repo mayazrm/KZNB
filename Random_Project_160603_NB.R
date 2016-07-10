@@ -17,6 +17,9 @@ theme_set(theme_bw(base_size = 14))
 #For dotplots
 library(Rcmdr)
 
+#For Bayesian analysis
+library(brms)
+
 
 #### RECODING TIME ####
 
@@ -191,18 +194,20 @@ summary(rnd$rt) # M = 1.29
 quantile(rnd$rt, c(.90, .95, .99))
 
 rndtb <- subset(rnd, rt >= .01 & rt < 2)
-
-
-
 ##log transform latency scores
-rndtb$logrt <- log(rndtb$rt)
+rndtb$logrt <- log(rndtb$rt[rndtbvalence=="positive"])
 
 
 
 rndtb2 <- subset(rndtb, key == "up")
+mean(rndtb2$rt)
+median(rndtb2$rt)
+mean(rndtb2$rt[rndtb2$valence=="positive"])
+mean(rndtb2$rt[rndtb2$valence=="negative"])
 
 # standard model -- Significant main effect of valence
 summary(lm(logrt~valence + trial40c, data = rndtb2))
+summary(lm(rt~valence + trial40c, data = rndtb2)) #run on raw rt
 
 #random intercept model
 summary(lme(fixed=logrt ~ valence + trial40c,  data=rndtb2, random= ~ 1 | id))
@@ -210,21 +215,55 @@ summary(lme(fixed=logrt ~ valence + trial40c,  data=rndtb2, random= ~ 1 | id))
 #random intercept & slope of valence
 summary(lme(fixed=logrt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence | id))
 
-#random intercept & slope of valence and timee
-valenceslope <- (lme(fixed=logrt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence + trial40c | id))
+#random intercept & slope of trial
 noslope <- (lme(fixed=logrt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + trial40c | id))
+summary(noslope)
+
+#random intercept & slope of valence and trial
+valenceslope <- (lme(fixed=logrt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence + trial40c | id))
+summary(lme(fixed=rt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence + trial40c | id)) #raw rt
+#random intercept & slope of valence and trial: Raw RT
+valenceslope.raw <- (lme(fixed=rt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence + trial40c | id))
+summary(valenceslope.raw)
+vposranef.raw<- -0.0501060 + ranef(valenceslope.raw)[2]
+quantile(vposranef.raw$valence, probs=c(.025, .975))
+1000*quantile(vposranef.raw$valence, probs=c(.025, .5, .975))
+
+stripchart(1000*vposranef.raw$valencepositive, pch=21, bg="skyblue", cex=3.5, lwd=2,
+           xlim=c(-200, 100), xlab="Trait Valence Effect (in Milliseconds)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-150, 60))
+
+
+#Run analysis using brms
+valenceslope.brm <- brm(logrt ~ valence + trial40c + (1 + valence + trial40c | id), 
+                         data=rndtb2, chains=2, cores=4)
+summary(valenceslope.brm)
+valslopesamp<-posterior.samples(valenceslope.brm)
+plot(density(valslopesamp$sd_id_valenceT.positive))
+abline(v=c(.04, .13))
+pp<-predict(valenceslope.brm, nsamples=6, summary=F)
+par(mfrow=c(4,1))
+plot(density(rndtb2$logrt), xlim=c(-1, 1), ylim=c(0, 1.5))
+plot(density(pp[1,]), xlim=c(-1, 1), ylim=c(0, 1.5))
+plot(density(pp[2,]), xlim=c(-1, 1), ylim=c(0, 1.5))
+plot(density(pp[3,]), xlim=c(-1, 1), ylim=c(0, 1.5))
+
+
+
+
 
 summary(valenceslope)
 vposranef<- -0.05165573 + ranef(valenceslope)[2]
-mean(vposranef$valencepositive)
-plot(density(vposranef$valencepositive))
-quantile(vposranef$valencepositive)
-Dotplot(vposranef$valencepositive)
+mean(vposranef$valence)
+plot(density(vposranef$valence))
+quantile(vposranef$valence, probs=c(.025, .975))
+qnorm(c(.025, .25, .75, .975), mean=-.05, sd=.09) #96% prediction interval for ranefs
+Dotplot(vposranef$valence)
 
-stripchart(vposranef$valencepositive, pch=21, bg="skyblue", cex=3.5, lwd=2,
-           xlim=c(-.20, .20), xlab="Trait Valence Effect", cex.axis=1.5, cex.lab=1.5)
+stripchart(vposranef$valence, pch=21, bg="skyblue", cex=3.5, lwd=2,
+           xlim=c(-.20, .10), xlab="Trait Valence Effect", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(.04, .13))
 
-summary(noslope)
 
 # look at change in loglikelihood (multiply by -2?)
 # obtain degrees of freedom: 
