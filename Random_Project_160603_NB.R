@@ -17,7 +17,7 @@ theme_set(theme_bw(base_size = 14))
 #For dotplots
 library(Rcmdr)
 
-#For Bayesian analysis
+#For Bayesian analysis:
 library(brms)
 
 
