@@ -6,4 +6,4 @@ data(Moore)
 summary(Moore$conformity)
 table(Moore$partner.status)
 
-plot(Moore$fscore, Moore$conformity)
+plot(Moore$fscore, Moore$conformity) 
