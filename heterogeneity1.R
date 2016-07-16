@@ -62,10 +62,35 @@ summary(rndbrm0)
 rndsamp0<-posterior.samples(rndbrm0, nsamples=5)
 plot(marginal_effects(rndbrm0))
 
+#run lme for comparison: no random stimuli
+rndlmer2 <- lmer(rt ~ valenceE + trial40c + (1 + valenceE + trial40c | id),
+               data=rndtb2)
+summary(rndlmer2)
+#run lme for comparison: include random stimuli
+rndlmer2a <- lmer(rt ~ valenceE + trial40c + (1 + valenceE + trial40c | id)
+               + (1 | word), data=rndtb2)
+summary(rndlmer2a)
+
+#run lme for comparison: include random stimuli, no random people: works
+rndlmer2b <- lmer(rt ~ valenceE + trial40c
+                  + (1 | word), data=rndtb2)
+summary(rndlmer2b)
+
+
+#Run Bayesian model: stimuli are fixed
 rndbrm2 <- brm(rt ~ valenceE + trial40c + (1 + valenceE + trial40c | id), 
                         data=rndtb2, chains=2, cores=4)
 summary(rndbrm2)
 
+#Run Bayesian model: stimuli are random
+rndbrm2a <- brm(rt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) 
+               + (1 | word), data=rndtb2, chains=2, cores=4)
+summary(rndbrm2a)
+rebrm2a<-ranef(rndbrm2a)
+head(rebrm2a$word)
+ordrebrm2a.word <- rebrm2a$word[order(rebrm2a$word[, 1]), ] + 1.07 #Ordered by reval.brm2 (by size of rt)
+head(ordrebrm2a.word)
+print(ordrebrm2a.word)
 
 
 ##order by size of valence slope
@@ -90,6 +115,26 @@ pdf(file="predrt-by-valence.pdf", width=30, height=22)
 
 par(mfrow=c(5,14))
 for (i in ordrebrm2[,1]) {
+  plot(mebrm2$valenceE$valenceE[mebrm2$valenceE$id==i],
+       mebrm2$valenceE$Estimate[mebrm2$valenceE$id==i], 
+       ylab="Predicted RT (seconds)", xlab="Valence (-.5,+.5)",
+       type="l", cex=2, lwd=2.5, bg="skyblue", ylim=c(0,2), xlim=c(-0.7, 0.7),
+       main=paste("id ", round(i, digits=3), sep = " "))
+  lines(mebrm2$valenceE$valenceE[mebrm2$valenceE$id==i],
+        mebrm2$valenceE$lowerCI[mebrm2$valenceE$id==i], lty=1, lwd=1.5, col="black")
+  lines(mebrm2$valenceE$valenceE[mebrm2$valenceE$id==i],
+        mebrm2$valenceE$upperCI[mebrm2$valenceE$id==i], lty=1, lwd=1.5, col="black")
+  points(rndtb2$valenceE[rndtb2$id==i], rndtb2$rt[rndtb2$id==i], pch=21, cex=1.2, bg="skyblue")
+  #abline(v=c(5, 6, 10))
+}
+
+dev.off()
+
+
+pdf(file="predrt-by-valence1.pdf", width=30, height=22)
+
+par(mfrow=c(5,14))
+for (i in unique(rndtb2$id)) {
   plot(mebrm2$valenceE$valenceE[mebrm2$valenceE$id==i],
        mebrm2$valenceE$Estimate[mebrm2$valenceE$id==i], 
        ylab="Predicted RT (seconds)", xlab="Valence (-.5,+.5)",

@@ -13,12 +13,12 @@ library(nlme)
 library(lme4)
 library(ggplot2)
 theme_set(theme_bw(base_size = 14))
+#For Bayesian analysis:
+library(brms)
 
 #For dotplots
 library(Rcmdr)
 
-#For Bayesian analysis:
-library(brms)
 
 
 #### RECODING TIME ####
@@ -239,6 +239,7 @@ valenceslope.brm <- brm(logrt ~ valence + trial40c + (1 + valence + trial40c | i
                          data=rndtb2, chains=2, cores=4)
 summary(valenceslope.brm)
 valslopesamp<-posterior.samples(valenceslope.brm)
+par(mfrow=c(1,1))
 plot(density(valslopesamp$sd_id_valenceT.positive))
 abline(v=c(.04, .13))
 pp<-predict(valenceslope.brm, nsamples=6, summary=F)
