@@ -173,6 +173,11 @@ summary(lmer(rt ~ valenceE + trial40c + (1 | id),  data=rndtb))
 summary(lmer(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtb))
 summary(lmer(rt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtb))
 
+#random intercept & slope of valence plus random intercept of word
+summary(lmer(logrt ~ valenceE + trial40c + (1 + valenceE| id) + (1 | word),  data=rndtb))
+summary(lmer(rt ~ valenceE + trial40c + (1 + valenceE| id) + (1 | word),  data=rndtb))
+
+
 
 
 #random intercept & slope of trial
@@ -186,23 +191,30 @@ sort(rndtb2$rt.z)
 rndtz <- subset(rndtb2,  rt.z < 3) #within 3 SD of the mean RT
 
 # standard model -- Significant main effect of valence
-summary(lm(logrt~valence + trial40c, data = rndtz))
-summary(lm(rt~valence + trial40c, data = rndtz)) #run on raw rt
+summary(lm(logrt~valenceE + trial40c, data = rndtz))
+summary(lm(rt~valenceE + trial40c, data = rndtz)) #run on raw rt
 
 #random intercept model
-summary(lmer(logrt ~ valence + trial40c + (1 | id),  data=rndtz))
-summary(lmer(rt ~ valence + trial40c + (1 | id),  data=rndtz))
+summary(lmer(logrt ~ valenceE + trial40c + (1 | id),  data=rndtz))
+summary(lmer(rt ~ valenceE + trial40c + (1 | id),  data=rndtz))
 
 
 #random intercept & slope of valence
-summary(lmer(logrt ~ valence + trial40c + (1 + valence| id),  data=rndtz))
-summary(lmer(rt ~ valence + trial40c + (1 + valence| id),  data=rndtz))
+summary(lmer(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz))
+summary(lmer(rt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz))
 
 
-#random intercept & slope of valence & random effects of time
-summary(lmer(logrt ~ valence + trial40c + (1 + valence + trial40c | id),  data=rndtz))
-valwordmod <- (lmer(rt ~ valence + trial40c + (1 + valence + trial40c| id),  data=rndtz))
-summary(valwordmod)
+#random intercept & slope of valence & random effects of time 
+summary(lmer(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) ,  data=rndtz))
+summary(lmer(rt ~ valenceE + trial40c + (1 + valenceE + trial40c| id) ,  data=rndtz))
+
+
+#random intercept & slope of valence & random effects of time and word
+summary(lmer(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) + (1 | word),  data=rndtz))
+summary(lmer(rt ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtz))
+
+
+
 
 
 #random intercept & slope of valence and trial
