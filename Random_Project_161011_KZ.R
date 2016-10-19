@@ -12,6 +12,7 @@ rnd <- read.csv("randomproject_data_aggregated_161011b.csv")
 library(nlme)
 library(lme4)
 library(ggplot2)
+library(lmerTest)
 theme_set(theme_bw(base_size = 14))
 #For Bayesian analysis:
 library(brms)
@@ -139,7 +140,7 @@ selfrelplot <- ggplot(data=rndtb2, aes(x=valence, y=logrt)) +
         axis.title.y = element_text(face="bold", vjust=0.5),
         axis.title.x = element_text(face="bold", vjust=-0.35)) +
   facet_wrap(~id) 
-#(selfrelplot, file = "selfrelplot.pdf", height = 40/2.54, width = 64/2.54)
+#ggsave(selfrelplot, file = "selfrelplot.pdf", height = 40/2.54, width = 64/2.54)
 
 
 
@@ -218,19 +219,26 @@ summary(lmer(rt ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | wor
 
 
 #random intercept & slope of valence and trial
-valenceslope <- (lme(fixed=logrt ~ valence + trial40c,  data=rndtb, random= ~ 1 + valence + trial40c | id))
-summary(lme(fixed=rt ~ valence + trial40c,  data=rndtb, random= ~ 1 + valence + trial40c | id)) #raw rt
+#valenceslope <- (lme(fixed=logrt ~ valenceE + trial40c,  data=rndtb, random= ~ 1 + valenceE + trial40c |id))
+#summary(lme(fixed=rt ~ valence + trial40c,  data=rndtb2, random= ~ 1 + valence + trial40c | id)) #raw rt
 #random intercept & slope of valence and trial: Raw RT
-valenceslope.raw <- (lme(fixed=rt ~ valence + trial40c,  data=rndtb, random= ~ 1 + valence + trial40c | id))
-summary(valenceslope.raw)
-vposranef.raw<- -0.0501060 + ranef(valenceslope.raw)[2]
-quantile(vposranef.raw$valence, probs=c(.025, .975))
-1000*quantile(vposranef.raw$valence, probs=c(.025, .5, .975))
+#valenceslope.raw <- (lme(fixed=rt ~ valenceE + trial40c,  data=rndtb, random= ~ 1 + valenceE + trial40c | id))
+valenceslope.raw2 <- (lmer(rt ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtz))
+#summary(valenceslope.raw)
+summary(valenceslope.raw2)
+#vposranef.raw<- -0.1270142 + ranef(valenceslope.raw)[2]
+vposranef.raw2<- -0.167972 + ranef(valenceslope.raw2)$id[2]
 
-stripchart(1000*vposranef.raw$valencepositive, pch=21, bg="skyblue", cex=3.5, lwd=2,
-           xlim=c(-200, 100), xlab="Trait Valence Effect (in Milliseconds)", cex.axis=1.5, cex.lab=1.5)
-abline(v=c(-150, 60))
 
+quantile(vposranef.raw2$valenceE, probs=c(.025, .975))
+1000*quantile(vposranef.raw2$valenceE, probs=c(.025, .5, .975))
+
+pdf("random_wave2_dotplot.pdf", width = 16, height = 8) 
+stripchart(1000*vposranef.raw2, pch=21, bg="skyblue", cex=3.5, lwd=2,
+           xlim=c(-500, 150), xlab="Trait Valence Effect (in Milliseconds)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-463, -168, 127), col = c("red", "black", "red"),
+       lwd = 3)
+dev.off()
 
 #Run analysis using brms
 valenceslope.brm <- brm(logrt ~ valence + trial40c + (1 + valence + trial40c | id), 
