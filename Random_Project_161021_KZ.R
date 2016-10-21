@@ -227,7 +227,7 @@ valenceslope.raw2 <- (lmer(rt ~ valenceE + trial40c + (1 + valenceE + trial40c| 
 #summary(valenceslope.raw)
 summary(valenceslope.raw2)
 #vposranef.raw<- -0.1270142 + ranef(valenceslope.raw)[2]
-vposranef.raw2<- -0.167972 + ranef(valenceslope.raw2)$id[2]
+vposranef.raw2<- -0.174426 + ranef(valenceslope.raw2)$id[2]
 
 
 quantile(vposranef.raw2$valenceE, probs=c(.025, .975))
