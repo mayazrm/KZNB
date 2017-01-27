@@ -76,8 +76,10 @@ rndlmer2b <- lmer(rt ~ valenceE + trial40c
                   + (1 | word), data=rndtb2)
 summary(rndlmer2b)
 
+#Compare the fits of these models
+anova(rndlmer2, rndlmer2b)
 
-#Run Bayesian model: stimuli are fixed
+#Run Bayesian model: stimuli are undifferentiated
 rndbrm2 <- brm(rt ~ valenceE + trial40c + (1 + valenceE + trial40c | id), 
                         data=rndtb2, chains=2, cores=4)
 summary(rndbrm2)
@@ -86,6 +88,21 @@ summary(rndbrm2)
 rndbrm2a <- brm(rt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) 
                + (1 | word), data=rndtb2, chains=2, cores=4)
 summary(rndbrm2a)
+
+#Compare brms fits: stim undiff vs. random
+LOO(rndbrm2, rndbrm2a)
+WAIC(rndbrm2, rndbrm2a)
+
+#extract posterior samples of standard deviations of random effects
+rndbrm2asamp <- posterior_samples(rndbrm2a, "^sd")
+head(rndbrm2asamp)
+hist(rndbrm2asamp$sd_id_valenceE)
+plot(density(rndbrm2asamp$sd_id_valenceE))
+plot(density(rndbrm2asamp$sd_word_Intercept))
+scatterplot(rndbrm2asamp$sd_word_Intercept, rndbrm2asamp$sd_id_valenceE,
+            xlim = c(0, 0.17), ylim = c(0, 0.17))
+rndbrm2a.stancode <- stancode(rndbrm2a)
+
 rebrm2a<-ranef(rndbrm2a)
 head(rebrm2a$word)
 ordrebrm2a.word <- rebrm2a$word[order(rebrm2a$word[, 1]), ] + 1.07 #Ordered by reval.brm2 (by size of rt)
@@ -96,6 +113,8 @@ print(ordrebrm2a.word)
 ##order by size of valence slope
 rebrm2 <- ranef(rndbrm2)
 mean(rebrm2$id[,2])
+sd(rebrm2$id[,2])
+
 reval.brm2 <- (rebrm2$id[,2] + fixef(rndbrm2)[2,1]) #Create predicted re's 
 REbrm2 <- cbind(unique(rndtb2$id), reval.brm2) 
 ordrebrm2 <- REbrm2[order(REbrm2[, 2]), ] #Ordered by reval.brm2 (second column of REbrm2)
