@@ -382,3 +382,53 @@ stripchart(ran7mod2ranef, pch=21, bg="skyblue", cex=2, lwd=2,
 abline(v=c(-24.64, -14.14, -3.16), col = c("red", "black", "red"),
        lwd = 3)
 #dev.off()
+
+
+###### "DataPreProcessed.csv" Analyses ######
+setwd("/Users/zeekatherine/KZNB/Ran Hassin PNAS Data")
+
+randata <- read.csv("DataPreProcessed.csv")
+
+randata$val <- ifelse(randata$Valance==-1, -.5, .5)
+
+randata$item <- randata$ItemNumber - 1
+# Is this the trial number (time) or the stimulus??
+
+## random intercept only
+# MLE model
+modelint <- lmer(RT ~ val + (1 | SubjectNumber), data = randata)
+summary(modelint)
+confint(modelint, oldNames=FALSE)
+
+
+# Bayesian model
+modelintb <- brm(RT ~ val + (1 | SubjectNumber), data = randata,
+                 chains = 1, cores=1)
+summary(modelintb)
+
+
+
+## random intercept and slope
+# MLE model
+modelslope <- lmer(RT ~ val + (val | SubjectNumber) + (1 | item), data = randata)
+summary(modelslope)
+confint(modelint, oldNames=FALSE)
+
+# Bayesian model
+modelslopeb <- brm(RT ~ val + (val | SubjectNumber), data = randata,
+                   chains = 1, cores = 1)
+summary(modelslopeb)
+
+
+#### dot plot #####
+summary(modelslope)
+modelsloperanef <- 0.07413 + ranef(modelslope)$SubjectNumber[2]
+quantile(modelsloperanef$val, probs=c(.025, .5, .975))
+
+#pdf("random_randata_dotplot.pdf", width = 16, height = 8) 
+stripchart(modelsloperanef, pch=21, bg="skyblue", cex=2, lwd=2,
+           xlim=c(-.03, .30), xlab="Difference in Reaction Times as a Function of Valence", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-.02, .05, .26), col = c("red", "black", "red"),
+       lwd = 3)
+#dev.off()
+
