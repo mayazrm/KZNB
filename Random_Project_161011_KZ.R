@@ -233,12 +233,12 @@ vposranef.raw2<- -0.167972 + ranef(valenceslope.raw2)$id[2]
 quantile(vposranef.raw2$valenceE, probs=c(.025, .975))
 1000*quantile(vposranef.raw2$valenceE, probs=c(.025, .5, .975))
 
-pdf("random_wave2_dotplot.pdf", width = 16, height = 8) 
+#pdf("random_wave2_dotplot.pdf", width = 16, height = 8) 
 stripchart(1000*vposranef.raw2, pch=21, bg="skyblue", cex=3.5, lwd=2,
            xlim=c(-500, 150), xlab="Trait Valence Effect (in Milliseconds)", cex.axis=1.5, cex.lab=1.5)
 abline(v=c(-463, -168, 127), col = c("red", "black", "red"),
        lwd = 3)
-dev.off()
+#dev.off()
 
 #Run analysis using brms
 valenceslope.brm <- brm(logrt ~ valence + trial40c + (1 + valence + trial40c | id), 

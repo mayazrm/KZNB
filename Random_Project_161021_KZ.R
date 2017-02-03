@@ -241,7 +241,7 @@ abline(v=c(-408, -161, 32), col = c("red", "black", "red"),
 #dev.off()
 
 #Run analysis using brms
-valenceslope.brm <- brm(logrt ~ valence + trial40c + (1 + valence + trial40c | id), 
+#valenceslope.brm <- brm(logrt ~ valence + trial40c + (1 + valence + trial40c | id), 
                          data=rndtb2, chains=2, cores=4)
 summary(valenceslope.brm)
 valslopesamp<-posterior.samples(valenceslope.brm)
