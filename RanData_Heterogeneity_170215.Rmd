@@ -1,0 +1,293 @@
+---
+title: "Ran Hassin Data - Heterogeneity"
+author: "Katherine Zee"
+date: "January 27, 2017"
+output: html_document
+---
+
+```{r }
+library(nlme)
+library(lme4)
+library(ggplot2)
+library(lmerTest)
+theme_set(theme_bw(base_size = 14))
+#For Bayesian analysis:
+library(brms)
+
+#For dotplots
+library(Rcmdr)
+
+
+
+```
+
+## Ran PNAS Study 6
+```{r}
+#setwd("/Users/zeekatherine/KZNB/Ran Data")
+setwd("C:/Users/Niall/Dropbox/NIALL1/MET/Suppes Talk/Heterogeneity")
+
+ran6a <- read.csv("exp6_all_data_long.csv")
+ran6 <- subset(ran6a, exclude_from_analysis == "FALSE" & operand == "S")
+
+ran6$presentation_time_f <- as.factor(ran6$presentation_time)
+
+ran6$congr <- ifelse(ran6$congruent == "no", -.5, .5)
+ran6$ptimer <- ifelse(ran6$presentation_time == "1700", -.5, .5)
+
+
+## random intercept only
+# MLE model
+ran6mod1 <- lmer(rt ~ congr*ptimer + (1 | subject), data = ran6)
+summary(ran6mod1)
+confint(ran6mod1, oldNames = FALSE)
+
+
+
+# Bayesian model
+ran6mod1b <- brm(rt ~ congr*ptimer + (1 | subject), data = ran6, 
+                 cores = 1, chains = 1)
+summary(ran6mod1b)
+WAIC(ran6mod1b)
+
+
+## random slopes
+# MLE model
+ran6mod2 <- lmer(rt ~ congr*ptimer + (1 + congr | subject), data = ran6)
+summary(ran6mod2)
+confint(ran6mod2, oldNames = FALSE)
+
+# Bayesian model
+ran6mod2b <- brm(rt ~ congr*ptimer + (1 + congr | subject), data = ran6,
+                 cores = 4, chains = 6, iter = 4000)
+summary(ran6mod2b)
+WAIC(ran6mod2b)
+WAIC(ran6mod1b, ran6mod2b)
+
+# Extracts all samples from the posterior
+post.ran6mod2b<-posterior.samples(ran6mod2b)
+hist(post.ran6mod2b$sd_subject_congr, breaks=50)
+median(post.ran6mod2b$sd_subject_congr)
+
+
+# Study 6 Dotplot (MLE model with random slopes)
+summary(ran6mod2)
+ran6mod2ranef <- -15.358 + ranef(ran6mod2)$subject[2]
+quantile(ran6mod2ranef$congr, probs=c(.025, .5, .975))
+
+#pdf("random_ran6_dotplot.pdf", width = 16, height = 8) 
+stripchart(ran6mod2ranef, pch=21, bg="skyblue", cex=2, lwd=2,
+           xlim=c(-20, -9), xlab="Difference in Reaction Times between Congruent and Incongruent Conditions", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-18.6, -15.14, -12.21), col = c("red", "black", "red"),
+       lwd = 3)
+#dev.off()
+
+```
+
+## Ran PNAS Study 7
+```{r}
+ran7a <- read.csv("exp7_all_data_long.csv")
+ran7 <- subset(ran7a, subjective == "1" & operation == "S" & objective.test.score <= 0.6)
+# COMPUTE filter_$=(subjective = 1 & OTRate <= 0.6 & operation = 'S').
+
+ran7$congr <- ifelse(ran7$congruent == "no", -.5, .5)
+ran7$ptimer <- ifelse(ran7$presentation.duration == "1000", -.5, .5)
+
+
+## random intercept only
+# MLE model
+ran7mod1 <- lmer(rt ~ congr*ptimer + (1 | subject), data = ran7)
+summary(ran7mod1)
+confint(ran7mod1, oldNames = FALSE)
+
+
+# Bayesian model
+ran7mod1b <- brm(rt ~ congr*ptimer + (1 | subject), data = ran7, 
+                 cores = 4, chains = 3)
+summary(ran7mod1b)
+WAIC(ran7mod1b)
+
+
+## random slopes 
+# MLE model
+ran7mod2 <- lmer(rt ~ congr*ptimer + (1 + congr | subject), data = ran7)
+summary(ran7mod2)
+confint(ran7mod2, oldNames = FALSE)
+
+# Bayesian model
+ran7mod2b <- brm(rt ~ congr*ptimer + (1 + congr | subject), data = ran7,
+                 cores = 4, chains = 6, iter = 4000)
+summary(ran7mod2b)
+
+WAIC(ran7mod2b)
+WAIC(ran7mod1b, ran7mod2b)
+
+# Extracts all samples from the posterior
+post.ran7mod2b<-posterior.samples(ran7mod2b)
+hist(post.ran7mod2b$sd_subject_congr, breaks=50)
+median(post.ran7mod2b$sd_subject_congr)
+
+
+# Study 7 Dotplot (MLE model with random slopes)
+summary(ran7mod2)
+ran7mod2ranef <- -13.496 + ranef(ran7mod2)$subject[2]
+quantile(ran7mod2ranef$congr, probs=c(.025, .5, .975))
+
+#pdf("random_ran7_dotplot.pdf", width = 16, height = 8) 
+stripchart(ran7mod2ranef, pch=21, bg="skyblue", cex=2, lwd=2,
+           xlim=c(-27, -1), xlab="Difference in Reaction Times between Congruent and Incongruent Conditions", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-24.64, -14.14, -3.16), col = c("red", "black", "red"),
+       lwd = 3)
+#dev.off()
+
+```
+
+
+## Data from "DataPreProcessed.csv" file
+```{r}
+randata <- read.csv("DataPreProcessed.csv")
+
+randata$val <- ifelse(randata$Valance==-1, -.5, .5)
+
+randata$item <- randata$ItemNumber - 1
+# Is this the trial number (time) or the stimulus??
+
+## random intercept only
+# MLE model
+modelint <- lmer(RT ~ val + (1 | SubjectNumber), data = randata)
+summary(modelint)
+confint(modelint, oldNames=FALSE)
+
+
+# Bayesian model
+modelintb <- brm(RT ~ val + (1 | SubjectNumber), data = randata,
+                 chains = 3, cores=4)
+summary(modelintb)
+WAIC(modelintb)
+
+
+
+## random intercept and slope
+# MLE model
+modelslope <- lmer(RT ~ val + (val | SubjectNumber) + (1 | item), data = randata)
+summary(modelslope)
+confint(modelint, oldNames=FALSE)
+
+# Bayesian model
+modelslopeb <- brm(RT ~ val + (val | SubjectNumber), data = randata,
+                   chains = 3, cores = 4)
+summary(modelslopeb)
+WAIC(modelintb, modelslopeb)
+
+# Extracts all samples from the posterior
+post.modelslopeb<-posterior_samples(modelslopeb)
+hist(post.modelslopeb$sd_SubjectNumber__val, breaks=50)
+median(post.modelslopeb$sd_SubjectNumber__val)
+
+#Get predicted values based on randint only
+predintonly<-predict(modelslopeb, re_formula = ~ (1 | SubjectNumber))
+randata$RTpred<-predintonly[,1] + rnorm(length(predintonly))
+
+modpredint <- brm(RTpred ~ val + (val | SubjectNumber), data = randata,
+                   chains = 6, cores = 4, iter = 4000)
+summary(modpredint)
+WAIC(modpredint)
+
+# Extracts all samples from the posterior
+post.modpredint<-posterior_samples(modpredint)
+hist(post.modpredint$sd_SubjectNumber__val, breaks=50)
+
+median(post.modpredint$sd_SubjectNumber_val)
+
+#### dot plot #####
+summary(modelslope)
+modelsloperanef <- 0.07413 + ranef(modelslope)$SubjectNumber[,2]
+quantile(modelsloperanef$val, probs=c(.025, .5, .975))
+
+pdf("random_randata_dotplot.pdf", width = 16, height = 8) 
+stripchart(modelsloperanef, pch=21, bg="skyblue", cex=2, lwd=2,
+           xlim=c(-.03, .30), xlab="Difference in Reaction Times as a Function of Valence", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-.02, .05, .26), col = c("red", "black", "red"),
+       lwd = 3)
+dev.off()
+
+
+
+
+# bayesian random effects:
+summary(modelslopeb)
+bm.modelsloperanef <- 0.07 + ranef(modelslopeb)$SubjectNumber[,2]
+quantile(bm.modelsloperanef, probs=c(.025, .5, .975))
+
+#### dot plot with MLE and Bayesian REs #####
+x <- list("MLE"=modelsloperanef, "Bayes"=bm.modelsloperanef)
+
+pdf("random_randata_dotplot2.pdf", width = 16, height = 8) 
+stripchart(x,
+ main="Multiple stripchart for comparision \n Gray = Mean and SDs, Colored Lines = Quantiles",
+ xlab="Random Effects of Valence on RT",
+ ylab="Method",
+ col=c("red","blue"),
+ pch=16,
+ cex = 2, 
+ cex.axis = 1.5, 
+ cex.lab = 1.5,
+ xlim=c(-.10, .30)
+ )
+abline(v=c(-.02, .05, .26), col = c("darkred", "darkred", "darkred"),
+       lty = c("dashed", "solid", "dashed"), lwd = 4)
+abline(v=c(.0006, .054, .23), col = c("darkblue", "darkblue", "darkblue"),
+       lty = c("dashed", "solid", "dashed"), lwd = 4)
+abline(v=c(-.09, .074, .24), col = c("darkgray", "darkgray", "darkgray"),
+       lty = c("dashed", "solid", "dashed"), lwd = 4)
+dev.off()
+
+
+
+
+##### More graphs#####
+plot(modelslopeb, pars = NA, parameters = NA, combo = c("dens",
+  "trace"), N = 5, exact_match = FALSE, theme = NULL, plot = TRUE,
+  ask = F, newpage = TRUE, device = NULL)
+```
+
+
+# With Math Variables Predicting Random Effects
+```{r}
+s7res1 <- ranef(ran7mod2)
+s7res <- data.frame(as.numeric(rownames(s7res1$subject)),
+                    s7res1$subject)
+colnames(s7res)[1]="subject"
+s7res$intercept <- s7res$X.Intercept.
+View(s7res)
+
+library(dplyr)
+
+s7math <- read.csv("/Users/zeekatherine/KZNB/Ran Data/Exp 7 math and motivation 13.2.2017.csv")
+
+s7math2 <- dplyr::full_join(s7res, s7math, by = "subject")
+View(s7math2)
+
+
+# Bi-variate correlations between math variables and random effects
+
+cor.test(s7math2$psychometric, s7math2$congr) # not correlated
+cor.test(s7math2$psychometric, s7math2$intercept) # weak neg correlation (not significant)
+
+cor.test(s7math2$math_anxiety, s7math2$congr) # weak marginal correlation
+cor.test(s7math2$math_anxiety, s7math2$intercept) # weak marginal correlation
+
+
+# Correlation between intercepts and slopes = .37 (bigger than covariance estimate from the model?)
+cor.test(s7math2$intercept, s7math2$congr) 
+
+
+cor.test(s7math2$math_self_rating, s7math2$congr) # weak nonsig correlation
+cor.test(s7math2$math_self_rating, s7math2$intercept) # weak nonsig
+
+cor.test(s7math2$math_anxiety, s7math2$math_self_rating) # weak marginal correlation
+
+
+
+mathvarsmod <- lm(congr ~ math_anxiety, data = s7math2)
+summary(mathvarsmod)
+```
