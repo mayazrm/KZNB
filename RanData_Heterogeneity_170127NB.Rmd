@@ -13,6 +13,7 @@ library(lmerTest)
 theme_set(theme_bw(base_size = 14))
 #For Bayesian analysis:
 library(brms)
+library(rethinking)
 
 #For dotplots
 library(Rcmdr)
@@ -65,8 +66,7 @@ WAIC(ran6mod1b, ran6mod2b)
 
 # Extracts all samples from the posterior
 post.ran6mod2b<-posterior.samples(ran6mod2b)
-hist(post.ran6mod2b$sd_subject_congr, breaks=50)
-median(post.ran6mod2b$sd_subject_congr)
+hist(post.ran6mod2b$sd_subject_congr, breaks=50)median(post.ran6mod2b$sd_subject_congr)
 
 
 # Study 6 Dotplot (MLE model with random slopes)
@@ -174,7 +174,7 @@ confint(modelint, oldNames=FALSE)
 
 # Bayesian model
 modelslopeb <- brm(RT ~ val + (val | SubjectNumber), data = randata,
-                   chains = 3, cores = 4)
+                   chains = 6, cores = 4, iter = 4000)
 summary(modelslopeb)
 WAIC(modelintb, modelslopeb)
 
@@ -204,8 +204,9 @@ modelsloperanef <- 0.07413 + ranef(modelslope)$SubjectNumber[2]
 quantile(modelsloperanef$val, probs=c(.025, .5, .975))
 
 #pdf("random_randata_dotplot.pdf", width = 16, height = 8) 
+windows()
 stripchart(modelsloperanef, pch=21, bg="skyblue", cex=2, lwd=2,
-           xlim=c(-.03, .30), xlab="Difference in Reaction Times as a Function of Valence", cex.axis=1.5, cex.lab=1.5)
+           xlim=c(-.03, .30), xlab="ML: Diff in Reaction Times as a Function of Valence", cex.axis=1.5, cex.lab=1.5)
 abline(v=c(-.02, .05, .26), col = c("red", "black", "red"),
        lwd = 3)
 #dev.off()
