@@ -1,0 +1,209 @@
+---
+title: "Heterogeneity Project - Analyses for Study 1A"
+output: html_notebook
+---
+
+
+# Load Data and Packages
+```{r}
+setwd("~/KZNB")
+rnd <- read.csv("randomproject_data_aggregated_161021.csv")
+rndt <- rnd
+
+library(nlme)
+library(lme4)
+library(ggplot2)
+library(lmerTest)
+theme_set(theme_bw(base_size = 14))
+#For Bayesian analysis:
+library(brms)
+library(car)
+#For dotplots
+library(Rcmdr)
+
+```
+
+# Recoding Variables
+```{r}
+# so that one unit (-.5, .5) = duration of study
+rndt$trial40 <- (rndt$trials.thisN + 1) 
+rndt$trial40c <- (rndt$trial40 - 20)/40
+
+rndt$rt <- rndt$response.rt
+rndt$logrt <- log(rndt$response.rt)
+
+rndt$id <- rndt$ID
+
+rndt$valenceE <-recode(rndt$valence, as.factor.result=F, '"negative" = -0.5; "positive" = 0.5')
+
+rndt$rtms <- rndt$rt*1000
+rndt$logrt <- log(rndt$rtms)
+
+```
+
+# Subsetting to look only at trials labeled as self-descriptive
+```{r}
+
+rndtb2 <- subset(rndt, response.keys == "up")
+
+```
+
+# Individual Plots
+```{r}
+selfrelplot <- ggplot(data=rndtb2, aes(x=valence, y=logrt)) +
+  geom_jitter(aes(color=as.factor(valence)), position = position_jitter(width = .2), size=1.5) +
+  labs(title = "Log RT by Valence - Self-Relevant Traits Only", x="id", y="Log RT") +
+  stat_summary(aes(group=valence), fun.y = mean, geom="point", colour="black", size=2) +
+  stat_summary(fun.data=mean_cl_boot, geom='errorbar', size = .5) +
+  scale_color_manual(values=c("orangered3", "green4")) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position='none',
+        plot.title = element_text(lineheight=.8, face="bold"),
+        axis.title.y = element_text(face="bold", vjust=0.5),
+        axis.title.x = element_text(face="bold", vjust=-0.35)) +
+  facet_wrap(~id) 
+selfrelplot
+#ggsave(selfrelplot, file = "selfrelplot_N62_170218.pdf", height = 40/2.54, width = 64/2.54)
+```
+
+
+# MLE Analyses 
+```{r}
+## Updates - Stricter Exclusion Cutoff 2 ######
+rndtb2 <- subset(rndt, response.keys == "up")
+rndtb <- subset(rndtb2, rt >= .01 & rt < 1.45) #90th percentile or below
+rndtb2$rt.z <- scale(rndtb2$rt)
+sort(rndtb2$rt.z)
+rndtz <- subset(rndtb2,  rt.z < 3) #within 3 SD of the mean RT
+
+# standard model -- Significant main effect of valence
+mle1a <- (lm(logrt~valenceE + trial40c, data = rndtz))
+summary(mle1a)
+mle1b <- (lm(rtms~valenceE + trial40c, data = rndtz)) #run on raw rt
+summary(mle1b)
+
+#random intercept model
+mle2a <- (lmer(logrt ~ valenceE + trial40c + (1 | id),  data=rndtz))
+summary(mle2a)
+mle2b <- (lmer(rtms ~ valenceE + trial40c + (1 | id),  data=rndtz))
+summary(mle2b)
+
+#random intercept & slope of valence
+mle3a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz))
+summary(mle3a)
+mle3b <- lmer(rtms ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz)
+summary(mle3b)
+
+
+#random intercept & slope of valence & random effects of time 
+mle4a <-(lmer(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) ,  data=rndtz))
+summary(mle4a)
+mle4b <-(lmer(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) ,  data=rndtz))
+summary(mle4b)
+
+#random intercept & slope of valence & random effects of time and word
+mle5a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) + (1 | word),  data=rndtz))
+summary(mle5a)
+
+mle5b <- (lmer(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtz))
+summary(mle5b)
+
+```
+
+# MLE Dot Plot
+```{r}
+ranef.mle5b<- -174.426 + ranef(mle5b)$id[,2]
+
+quantile(ranef.mle5b$valenceE, probs=c(.025, .975))
+
+stripchart(ranef.mle5b, pch=21, bg="red", cex=3.5, lwd=2,
+           xlim=c(-500, 150), xlab="Trait Valence Effect (in Milliseconds)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-408, -161, 32), col = c("red", "black", "red"),
+       lwd = 3)
+
+```
+
+# Bayesian Analyses 
+```{r}
+# standard model -- Significant main effect of valence
+bayes1a <- (brm(logrt~valenceE + trial40c, data = rndtz))
+summary(bayes1a)
+bayes1b <- (brm(rtms~valenceE + trial40c, data = rndtz)) #run on raw rt
+summary(bayes1b)
+
+#random intercept model
+bayes2a <- (brm(logrt ~ valenceE + trial40c + (1 | id),  data=rndtz))
+summary(bayes2a)
+bayes2b <- (brm(rtms ~ valenceE + trial40c + (1 | id),  data=rndtz))
+summary(bayes2b)
+
+
+#random intercept & slope of valence
+bayes3a <-(brm(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz))
+summary(bayes3a)
+bayes3b <-(brm(rtms ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz))
+summary(bayes3b)
+
+
+#random intercept & slope of valence & random effects of time 
+bayes4a <- (brm(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) ,  data=rndtz))
+summary(bayes4a)
+bayes4b <- (brm(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) ,  data=rndtz))
+summary(bayes4b)
+
+
+#random intercept & slope of valence & random effects of time and word
+bayes5a <- (brm(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) + (1 | word),  data=rndtz))
+summary(bayes5a)
+
+bayes5b <- (brm(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtz))
+summary(bayes5b)
+```
+
+# Bayesian Dotplot
+```{r}
+ranef.bayes5b <- -175.21 + ranef(bayes5b)$id[,2]
+
+stripchart(ranef.bayes5b, pch=21, bg="blue", cex=3.5, lwd=2,
+           xlim=c(-500, 150), xlab="Trait Valence Effect (in Milliseconds)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(quantile(ranef.bayes5b, probs=.025), quantile(ranef.bayes5b, probs=.5), quantile(ranef.bayes5b, probs=.975)), col = c("blue", "blue", "blue"),
+       lty = c("dashed", "solid", "dashed"), lwd = 4)
+
+```
+
+# Dotplot comparing MLE and Bayesian Results
+```{r}
+
+
+quantile(ranef.mle5b, probs=c(.025, .975))
+quantile(ranef.bayes5b, probs=c(.025, .975))
+
+x1 <- list("MLE"=ranef.mle5b, "Bayes"=ranef.bayes5b)
+
+stripchart(x1,
+ main="Multiple stripchart for comparision \n Gray = Mean and SDs, Colored Lines = Quantiles",
+ xlab="Random Effects of Valence on RT",
+ ylab="Method",
+ col=c("red","blue"),
+ pch=16,
+ cex = 2, 
+ cex.axis = 1.5, 
+ cex.lab = 1.5,
+ xlim=c(-500, 120)
+ )
+abline(v=c(quantile(ranef.mle5b, probs=.025), quantile(ranef.mle5b, probs=.5), quantile(ranef.mle5b, probs=.975)), col = c("darkred", "darkred", "darkred"),
+       lty = c("dashed", "solid", "dashed"), lwd = 4)
+
+abline(v=c(quantile(ranef.bayes5b, probs=.025), quantile(ranef.bayes5b, probs=.5), quantile(ranef.bayes5b, probs=.975)), col = c("darkblue", "darkblue", "darkblue"),
+       lty = c("dashed", "solid", "dashed"), lwd = 4)
+abline(v=c((-174.426-2*150.26), -174.426, (-174.426+2*150.26)), col = c("darkgray", "darkgray", "darkgray"),
+       lty = c("dashed", "solid", "dashed"), lwd = 4)
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
