@@ -2,7 +2,7 @@
 
 # RANDOM PROJECT ANALYSES 161021
 
-setwd("/Users/zeekatherine")
+#setwd("/Users/zeekatherine")
 setwd("~/KZNB")
 
 
