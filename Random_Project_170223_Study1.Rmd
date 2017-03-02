@@ -233,6 +233,16 @@ View(newfile)
 study1A_aggfile <- unique(newfile)
 colnames(study1A_aggfile) <- c("id", "valenceE", "rtms", "logrt")
 #write.csv(study1A_aggfile, "study1A_aggfile.csv", row.names = F)
+
+aggs1a <- read.csv("study1A_aggfile.csv")
+
+aggs1a.out = aov(logrt ~ valenceE + Error(id/valenceE), data=aggs1a)
+summary(aggs1a.out)
+
+library(dplyr)
+dplyr::group_by(aggs1a, valenceE)
+aggs1a %>% group_by(valenceE) %>% summarise(avge = mean(logrt))
+
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
