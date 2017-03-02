@@ -139,6 +139,21 @@ abline(v=c(-24.64, -14.14, -3.16), col = c("red", "black", "red"),
        lwd = 3)
 #dev.off()
 
+
+
+
+
+s7plusmath <- dplyr::full_join(ran7, s7math, by = "subject")
+
+s7plusmath$math_anxiety.c <- scale(s7plusmath$math_anxiety, center=T, scale=F)
+
+ran7mod2withmath <- lmer(rt ~ congr*ptimer + math_anxiety + (1 + congr | subject), data = s7plusmath)
+summary(ran7mod2withmath)
+
+
+
+ran7mod2int<- lmer(rt ~ congr*math_anxiety.c*ptimer + (1 + congr | subject), data = s7plusmath)
+summary(ran7mod2int)
 ```
 
 
