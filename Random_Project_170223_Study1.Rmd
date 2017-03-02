@@ -106,6 +106,10 @@ summary(mle2b)
 #random intercept & slope of valence
 mle3a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz))
 summary(mle3a)
+ci99 <- confint(mle3a, level = .99, oldNames=F)
+ci95 <- confint(mle3a, level = .95, oldNames=F)
+ci90 <- confint(mle3a, level = .90, oldNames=F)
+
 mle3b <- lmer(rtms ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz)
 summary(mle3b)
 
@@ -123,8 +127,16 @@ summary(mle5a)
 cnf.fe.mle5a <- confint(mle5a, "theta_") #elements of lower triang RE cov mat
 cnf.fe.mle5a <- confint(mle5a, "beta-")  #FEs
 
-mle5b <- (lmer(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtz))
+# with labels:
+cnf.fe.mle5a_lab <- confint(mle5a, oldNames = FALSE) #elements of lower triang RE cov mat
+
+
+mle5b <- lme4::lmer(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtz)
 summary(mle5b)
+
+confint(mle5b, level = .99)
+# see: https://www.rdocumentation.org/packages/lme4/versions/1.1-12/topics/confint.merMod
+
 
 ```
 
