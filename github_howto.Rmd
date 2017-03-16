@@ -2,7 +2,7 @@
 title: "Github Instructions"
 author: "Katherine Zee"
 date: "March 6, 2016"
-output: html_document
+output: pdf_document
 ---
 
 # Useful Info for setup:
