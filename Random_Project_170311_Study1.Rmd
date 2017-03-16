@@ -119,8 +119,33 @@ rndtz<- within(rndtz, {valenceE.mean = ave(valenceE, id, FUN = mean)})
 rndtz$valenceE.wc <- rndtz$valenceE - rndtz$valenceE.mean
 rndtz$valenceE.bc <- rndtz$valenceE.c - rndtz$valenceE.wc
 
+# grand mean centered for rndtzz, version with people showing variance on valenceE
+rndtzz$valenceE.c <- mean(rndtzz$valenceE)
+rndtzz<- within(rndtzz, {valenceE.mean = ave(valenceE, id, FUN = mean)})
+rndtzz$valenceE.wc <- rndtzz$valenceE - rndtzz$valenceE.mean
+rndtzz$valenceE.bc <- rndtzz$valenceE.mean - rndtzz$valenceE.c
 
-# standard model -- Significant main effect of valence
+#Basic intercept + slope model, but with betw and within versions of valenceE
+mle3aa.bw <- (lmer(logrt ~ valenceE.bc + valenceE.wc + (1 + valenceE.wc| id),  data=rndtzz))
+summary(mle3aa.bw)
+
+#random intercept & slope of valence & random effects of time and word
+mle5aa.bw <- (lmer(logrt ~ valenceE.bc + valenceE.wc + trial40c + (1 + valenceE + trial40c | id) + (1 | word),  data=rndtzz))
+summary(mle5aa.bw)
+
+#Note that effects in runs above are almost identical to those in the original run.
+
+#how much variance of valence is between?
+summary(lmer(valenceE ~ 1 + (1|id), data = rndtzz))
+var(rndtzz$valenceE)
+0.01788 + 0.21762 = 0.23569 #mixed model decomp
+anova(lm(valenceE ~ 1 + idcat, data = rndtzz))
+
+(35.189 + 273.76)/1316 - 0.21762 = 0.01714368 #total var - within var = between v (anova decomp)
+0.01714368 + 0.21781 = 0.2347661 #anova model decomp
+0.01714368/0.2347661 = .07302451 #7% of the variance of valenceE is between.
+
+  # standard model -- Significant main effect of valence
 mle1a <- (lm(logrt~valenceE + trial40c, data = rndtz))
 summary(mle1a)
 mle1b <- (lm(rtms~valenceE + trial40c, data = rndtz)) #run on raw rt
@@ -156,9 +181,25 @@ mle3b <- lmer(rtms ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz)
 summary(mle3b)
 
 #Remove the temporal order predictor for compatibility with SPSS
-mle3bb <- lmer(rtms ~ valenceE + (1 + valenceE| id),  data=rndtz)
+mle3bb <- lmer(rtms ~ valenceE + (1 + valenceE| id),  data=rndtzz)
 summary(mle3bb)
-confint(mle3bb)
+confmle3bb <- confint(mle3bb)
+
+# MLE Dot Plot for basic model with RT in msec
+
+ranef.mle3bb<- -162.01 + ranef(mle3bb)$id[,2] #ValencE column
+
+quantile(ranef.mle3bb, probs=c(.025, .975))
+quantile(ranef.mle3bb, probs=c(0, 1))
+
+#Compute population prediction interval for valenceE #need to update
+c(-162 - 2*143, -162 + 2*143)
+#[1] -450,  120 (vs -380, 20) #Considerably wider
+
+stripchart(ranef.mle3bb, pch=21, bg="red", cex=3.5, lwd=2,
+           xlim=c(-450, 50), xlab="Trait Valence Effect (in Milliseconds)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-382, -162.01, 16.9), col = c("red", "black", "red"),
+       lwd = 3)
 
 
 #random intercept & slope of valence & random effects of time 
@@ -168,14 +209,14 @@ mle4b <-(lmer(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) ,  data
 summary(mle4b)
 
 #random intercept & slope of valence & random effects of time and word
-mle5a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) + (1 | word),  data=rndtz))
-summary(mle5a)
+mle5aa <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) + (1 | word),  data=rndtzz))
+summary(mle5aa)
 
-cnf.fe.mle5a <- confint(mle5a, "theta_") #elements of lower triang RE cov mat
-cnf.fe.mle5a <- confint(mle5a, "beta-")  #FEs
+cnf.fe.mle5aa <- confint(mle5aa, "theta_") #elements of lower triang RE cov mat
+cnf.fe.mle5aa <- confint(mle5aa, "beta-")  #FEs
 
-mle5b <- (lmer(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtz))
-summary(mle5b)
+mle5bb <- (lmer(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtzz))
+summary(mle5bb)
 
 ```
 
