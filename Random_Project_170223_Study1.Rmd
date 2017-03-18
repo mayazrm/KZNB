@@ -110,7 +110,7 @@ ci99 <- confint(mle3a, level = .99, oldNames=F)
 ci95 <- confint(mle3a, level = .95, oldNames=F)
 ci90 <- confint(mle3a, level = .90, oldNames=F)
 
-mle3b <- lmer(rtms ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz)
+mle3b <- lmer(rt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz)
 summary(mle3b)
 
 
@@ -254,6 +254,155 @@ summary(aggs1a.out)
 library(dplyr)
 dplyr::group_by(aggs1a, valenceE)
 aggs1a %>% group_by(valenceE) %>% summarise(avge = mean(logrt))
+
+```
+
+
+## Code for computing individual difference variables
+```{r}
+setwd("~/KZNB")
+rndid <- read.csv("Heterogeneity_Project_Questionnaires.csv")
+rndid$ID <- rndid$subject
+# Regulatory Mode:
+rndid$rmq2r <- 7-rndid$rmq2
+rndid$rmq10r <- 7-rndid$rmq10
+rndid$rmq27r <- 7-rndid$rmq27
+rndid$rmq13r <- 7-rndid$rmq13
+rndid$rmq24r <- 7-rndid$rmq24
+
+rndid$loc.matrix <- cbind(rndid$rmq1,rndid$rmq3, rndid$rmq4, rndid$rmq5, rndid$rmq8, rndid$rmq13r, rndid$rmq16, rndid$rmq21, rndid$rmq24r, rndid$rmq25, rndid$rmq28, rndid$rmq29)
+rndid$loc.v <- as.vector(rowMeans(rndid$loc.matrix, na.rm=T))
+rndid$loc.c <- scale (rndid$loc.v, center=T, scale=F)
+
+rndid$ass.matrix <- cbind(rndid$rmq2r, rndid$rmq6, rndid$rmq7, rndid$rmq9, rndid$rmq10r, rndid$rmq11, rndid$rmq15, rndid$rmq19, rndid$rmq20, rndid$rmq22, rndid$rmq27r, rndid$rmq30)
+rndid$ass.v <- as.vector(rowMeans(rndid$ass.matrix, na.rm =T))
+rndid$ass.c <- scale (rndid$ass.v, center=T, scale=F)
+
+rndid$rmpredom <- rndid$loc.v-rndid$ass.v
+rndid$rmpredomave <- (rndid$loc.v+rndid$ass.v)/2
+rndid$rmpredom.c <- center(rndid$rmpredom)
+rndid$rmpredomave.c <- center(rndid$rmpredomave )
+
+
+# Regulatory Focus
+rndid$rfq1r <- 6-rndid$rfq1
+rndid$rfq9r <- 6-rndid$rfq9
+rndid$rfq11r <- 6-rndid$rfq11
+rndid$rfq2r <- 6-rndid$rfq2
+rndid$rfq4r <- 6-rndid$rfq4
+rndid$rfq6r <- 6-rndid$rfq6
+rndid$rfq8r <- 6-rndid$rfq8
+
+rndid$prom.matrix <- cbind(rndid$rfq1r, rndid$rfq3, rndid$rndid$rfq7, rndid$rfq9r, rndid$rfq10, rndid$rfq11r)
+rndid$prom.v <- as.vector(rowMeans(rndid$prom.matrix, na.rm=T))
+rndid$prom.c <- scale(rndid$prom.v, center=T, scale=F)
+
+rndid$prev.matrix <- cbind(rndid$rfq2r, rndid$rfq4r, rndid$rfq5, rndid$rfq6r, rndid$rfq8r)
+rndid$prev.v <- as.vector(rowMeans(rndid$prev.matrix, na.rm=T))
+rndid$prev.c <- scale(rndid$prev.v, center=T, scale=F)
+
+rndid$rfpredom <- rndid$prom.v-rndid$prev.v
+rndid$rfpredomave <- (rndid$prom.v+rndid$prev.v)/2
+rndid$rfpredom.c <- center(rndid$rfpredom )
+rndid$rfpredomave.c <- center(rndid$rfpredomave)
+
+# Self-Esteem
+rndid$se2r <- 8-rndid$se2
+rndid$se5r <- 8-rndid$se5
+rndid$se6r <- 8-rndid$se6
+rndid$se8r <- 8-rndid$se8
+rndid$se9r <- 8-rndid$se9
+
+rndid$se.all <- cbind(rndid$se1, rndid$se2r, rndid$se3, rndid$se4, rndid$se5r, rndid$se6r, rndid$se7, rndid$se8r, rndid$se9r, rndid$se10) 
+rndid$se.v <- as.vector(rowMeans(rndid$se.all, na.rm=T))
+rndid$se.c <- scale(rndid$se.v, center=T, scale=F)
+
+```
+
+## Merging RT data with individual difference variables
+```{r}
+summary(mle3b) # SD of valence effect = .14
+datamerge <- merge(rndid, rndtz, by = "ID")
+
+### With Regulatory Focus
+modindiv1 <- (lmer(rt ~ valenceE*prom.c*prev.c + trial40c + (1 + valenceE| id),  data=datamerge))
+summary(modindiv1)
+# significant interaction of valence and promotion
+# marginally significant interaction of valence and prevention
+# SD of valence effects = .13
+library(effects)
+plot(effect(term="valenceE:prom.c",mod=modindiv1,default.levels=2),multiline=TRUE)
+plot(effect(term="valenceE:prev.c",mod=modindiv1,default.levels=2),multiline=TRUE)
+# Note: no moderation by promotion predominance, but there is a moderating effect of overall RF strength (average of promotion and prevention)
+
+
+### Self-Esteem
+modindiv2 <- (lmer(rt ~ valenceE*se.c + trial40c + (1 + valenceE| id),  data=datamerge))
+summary(modindiv2)
+# SD of valence effect: .13
+plot(effect(term="valenceE:se.c",mod=modindiv2,default.levels=2),multiline=TRUE)
+
+### Regulatory Mode Predominance
+modindiv3 <- (lmer(rt ~ valenceE*rmpredom.c*rmpredomave.c + trial40c + (1 + valenceE| id),  data=datamerge))
+summary(modindiv3)
+# significant interaction of valence and locomotion predominance
+plot(effect(term="valenceE:rmpredom.c",mod=modindiv3,default.levels=2),multiline=TRUE)
+# Note: no moderation by locomotion or assessment when used as separate predictors
+
+
+modeleffect.re <- ranef(mle3b)
+res1<-data.frame(as.numeric(rownames(modeleffect.re$id)),modeleffect.re$id)
+colnames(res1)[1]="ID"
+res1$ID
+
+newd <- merge(res1, rndid, by = "ID")
+cor.test(newd$valenceE, newd$rmpredom.c) # significant correlation betw. RM predominance and valence random effects from original model
+
+cor.test(newd$valenceE, newd$prom.c) # significant correlation betw. promotion and valence random effects from original model
+
+cor.test(newd$valenceE, newd$prev.c) # NS correlation betw. prevention and valence random effects from original model
+
+cor.test(newd$valenceE, newd$se.c) # High significant correlation betw. self-esteem and valence random effects from original model
+
+```
+
+# Moderation Analyses with all words (both self-relevant and not self-relevant)
+```{r}
+
+rndt$selfrel <- ifelse(rndt$response.keys == "up", .5, -.5)
+rndtall <- subset(rndt, rt >= .01 & rt < 1.45) #90th percentile or below
+rndtall$rt.z <- scale(rndtall$rt)
+summary(rndtall$rt.z)
+
+datamergeall <- merge(rndid, rndtall, by = "ID")
+
+# without moderators
+modindivall <- (lmer(rt ~ valenceE + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall)
+
+modindivall1b <- (lmer(rt ~ valenceE*selfrel + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall1b)
+
+
+modindivall2 <- (lmer(rt ~ valenceE*rmpredom.c*rmpredomave.c + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall2 )
+# interaction of valence and rmpredom marginally significant
+
+modindivall2b <- (lmer(rt ~ valenceE*selfrel*rmpredom.c*rmpredomave.c + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall2b )
+
+
+modindivall3 <- (lmer(rt ~ valenceE*selfrel*prom.c*prev.c + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall3 )
+
+modeleffect.re2 <- ranef(modindivall)
+res2<-data.frame(as.numeric(rownames(modeleffect.re2$id)),modeleffect.re2$id)
+colnames(res2)[1]="ID"
+res2$ID
+
+newd2 <- merge(res2, rndid, by = "ID")
+cor.test(newd2$valenceE, newd2$rmpredom.c) # significant correlation betw. RM predominance and valence random effects from original model
+
 
 ```
 
