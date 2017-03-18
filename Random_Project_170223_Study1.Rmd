@@ -263,6 +263,13 @@ aggs1a %>% group_by(valenceE) %>% summarise(avge = mean(logrt))
 setwd("~/KZNB")
 rndid <- read.csv("Heterogeneity_Project_Questionnaires.csv")
 rndid$ID <- rndid$subject
+
+# Mean centering function
+center <- function(x) {
+  scale(x, center=T, scale=F)
+}
+
+
 # Regulatory Mode:
 rndid$rmq2r <- 7-rndid$rmq2
 rndid$rmq10r <- 7-rndid$rmq10
