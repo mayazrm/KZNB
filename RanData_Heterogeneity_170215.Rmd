@@ -269,8 +269,8 @@ plot(modelslopeb, pars = NA, parameters = NA, combo = c("dens",
 
 # With Math Variables Predicting Random Effects (updated 170316 KZ)
 ```{r}
-setwd("/Users/zeekatherine/KZNB/Ran Data")
 
+setwd("~/KZNB")
 # reading in Math Anxiety Variables
 ran7math <- read.csv("Exp 7 math and motivation 13.2.2017.csv")
 
@@ -280,7 +280,7 @@ ran7m <- merge(ran7, ran7math, by = "subject")
 ran7m$math_anxiety.c <- scale(ran7m$math_anxiety, center=T, scale=F)
 ran7m$math_self_rating.c <- scale(ran7m$math_self_rating, center=T, scale=F)
 
-ran7mod2math <- lmer(rt ~ congr*ptimer*math_anxiety.c + (1 + congr | subject), data = ran7m)
+ran7mod2math <- lmer(rt ~ congr*ptimer + congr*math_anxiety.c + (1 + congr | subject), data = ran7m)
 summary(ran7mod2math)
 # SD of congr effect is 13.37. Basically the same as the model without the moderator
 
@@ -298,7 +298,7 @@ dev.off()
 
 
 #### with "math_self_rating" variable as moderator:
-ran7mod2math2 <- lmer(rt ~ congr*ptimer*math_self_rating.c + (1 + congr | subject), data = ran7m)
+ran7mod2math2 <- lmer(rt ~ congr*ptimer + congr*math_self_rating.c + (1 + congr | subject), data = ran7m)
 summary(ran7mod2math2)
 # size of random slope increases slightly
 
