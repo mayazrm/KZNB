@@ -257,6 +257,66 @@ aggs1a %>% group_by(valenceE) %>% summarise(avge = mean(logrt))
 
 ```
 
+
+## Code for computing individual difference variables
+```{r}
+setwd("~/KZNB")
+rndid <- read.csv("Heterogeneity_Project_Questionnaires.csv")
+rndid$ID <- rndid$subject
+# Regulatory Mode:
+rndid$rmq2r <- 7-rndid$rmq2
+rndid$rmq10r <- 7-rndid$rmq10
+rndid$rmq27r <- 7-rndid$rmq27
+rndid$rmq13r <- 7-rndid$rmq13
+rndid$rmq24r <- 7-rndid$rmq24
+
+rndid$loc.matrix <- cbind(rndid$rmq1,rndid$rmq3, rndid$rmq4, rndid$rmq5, rndid$rmq8, rndid$rmq13r, rndid$rmq16, rndid$rmq21, rndid$rmq24r, rndid$rmq25, rndid$rmq28, rndid$rmq29)
+rndid$loc.v <- as.vector(rowMeans(rndid$loc.matrix, na.rm=T))
+rndid$loc.c <- scale (rndid$loc.v, center=T, scale=F)
+
+rndid$ass.matrix <- cbind(rndid$rmq2r, rndid$rmq6, rndid$rmq7, rndid$rmq9, rndid$rmq10r, rndid$rmq11, rndid$rmq15, rndid$rmq19, rndid$rmq20, rndid$rmq22, rndid$rmq27r, rndid$rmq30)
+rndid$ass.v <- as.vector(rowMeans(rndid$ass.matrix, na.rm =T))
+rndid$ass.c <- scale (rndid$ass.v, center=T, scale=F)
+
+# Regulatory Focus
+rndid$rfq1r <- 6-rndid$rfq1
+rndid$rfq9r <- 6-rndid$rfq9
+rndid$rfq11r <- 6-rndid$rfq11
+rndid$rfq2r <- 6-rndid$rfq2
+rndid$rfq4r <- 6-rndid$rfq4
+rndid$rfq6r <- 6-rndid$rfq6
+rndid$rfq8r <- 6-rndid$rfq8
+
+rndid$prom.matrix <- cbind(rndid$rfq1r, rndid$rfq3, rndid$rndid$rfq7, rndid$rfq9r, rndid$rfq10, rndid$rfq11r)
+rndid$prom.v <- as.vector(rowMeans(rndid$prom.matrix, na.rm=T))
+rndid$prom.c <- scale(rndid$prom.v, center=T, scale=F)
+
+rndid$prev.matrix <- cbind(rndid$rfq2r, rndid$rfq4r, rndid$rfq5, rndid$rfq6r, rndid$rfq8r)
+rndid$prev.v <- as.vector(rowMeans(rndid$prev.matrix, na.rm=T))
+rndid$prev.c <- scale(rndid$prev.v, center=T, scale=F)
+
+# Self-Esteem
+rndid$se2r <- 8-rndid$se2
+rndid$se5r <- 8-rndid$se5
+rndid$se6r <- 8-rndid$se6
+rndid$se8r <- 8-rndid$se8
+rndid$se9r <- 8-rndid$se9
+
+rndid$se.all <- cbind(rndid$se1, rndid$se2r, rndid$se3, rndid$se4, rndid$se5r, rndid$se6r, rndid$se7, rndid$se8r, rndid$se9r, rndid$se10) 
+rndid$se.v <- as.vector(rowMeans(rndid$se.all, na.rm=T))
+rndid$se.c <- scale(rndid$se.v, center=T, scale=F)
+
+```
+
+## Merging RT data with individual difference variables
+```{r}
+
+datamerge <- merge(rndid, rndtz, by = "ID")
+
+
+```
+
+
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 
 When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).

@@ -282,7 +282,7 @@ ran7m$math_self_rating.c <- scale(ran7m$math_self_rating, center=T, scale=F)
 
 ran7mod2math <- lmer(rt ~ congr*ptimer*math_anxiety.c + (1 + congr | subject), data = ran7m)
 summary(ran7mod2math)
-# SD of congr effect is 13.37. Basically the same as the model without the moderator
+# SD of congr effect is 13.37. Basically the same as the model without the moderator (SD = 13.30)
 
 
 # Dot plot with new random effects--i.e., shows how heterogeneity of the congruence effect changes when adding math anxiety was moderator
