@@ -366,6 +366,45 @@ cor.test(newd$valenceE, newd$se.c) # High significant correlation betw. self-est
 
 ```
 
+# Moderation Analyses with all words (both self-relevant and not self-relevant)
+```{r}
+
+rndt$selfrel <- ifelse(rndt$response.keys == "up", .5, -.5)
+rndtall <- subset(rndt, rt >= .01 & rt < 1.45) #90th percentile or below
+rndtall$rt.z <- scale(rndtall$rt)
+summary(rndtall$rt.z)
+
+datamergeall <- merge(rndid, rndtall, by = "ID")
+
+# without moderators
+modindivall <- (lmer(rt ~ valenceE + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall)
+
+modindivall1b <- (lmer(rt ~ valenceE*selfrel + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall1b)
+
+
+modindivall2 <- (lmer(rt ~ valenceE*rmpredom.c*rmpredomave.c + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall2 )
+# interaction of valence and rmpredom marginally significant
+
+modindivall2b <- (lmer(rt ~ valenceE*selfrel*rmpredom.c*rmpredomave.c + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall2b )
+
+
+modindivall3 <- (lmer(rt ~ valenceE*selfrel*prom.c*prev.c + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall3 )
+
+modeleffect.re2 <- ranef(modindivall)
+res2<-data.frame(as.numeric(rownames(modeleffect.re2$id)),modeleffect.re2$id)
+colnames(res2)[1]="ID"
+res2$ID
+
+newd2 <- merge(res2, rndid, by = "ID")
+cor.test(newd2$valenceE, newd2$rmpredom.c) # significant correlation betw. RM predominance and valence random effects from original model
+
+
+```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 
