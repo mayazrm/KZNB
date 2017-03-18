@@ -110,7 +110,7 @@ ci99 <- confint(mle3a, level = .99, oldNames=F)
 ci95 <- confint(mle3a, level = .95, oldNames=F)
 ci90 <- confint(mle3a, level = .90, oldNames=F)
 
-mle3b <- lmer(rtms ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz)
+mle3b <- lmer(rt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz)
 summary(mle3b)
 
 
@@ -278,6 +278,12 @@ rndid$ass.matrix <- cbind(rndid$rmq2r, rndid$rmq6, rndid$rmq7, rndid$rmq9, rndid
 rndid$ass.v <- as.vector(rowMeans(rndid$ass.matrix, na.rm =T))
 rndid$ass.c <- scale (rndid$ass.v, center=T, scale=F)
 
+rndid$rmpredom <- rndid$loc.v-rndid$ass.v
+rndid$rmpredomave <- (rndid$loc.v+rndid$ass.v)/2
+rndid$rmpredom.c <- center(rndid$rmpredom)
+rndid$rmpredomave.c <- center(rndid$rmpredomave )
+
+
 # Regulatory Focus
 rndid$rfq1r <- 6-rndid$rfq1
 rndid$rfq9r <- 6-rndid$rfq9
@@ -295,6 +301,11 @@ rndid$prev.matrix <- cbind(rndid$rfq2r, rndid$rfq4r, rndid$rfq5, rndid$rfq6r, rn
 rndid$prev.v <- as.vector(rowMeans(rndid$prev.matrix, na.rm=T))
 rndid$prev.c <- scale(rndid$prev.v, center=T, scale=F)
 
+rndid$rfpredom <- rndid$prom.v-rndid$prev.v
+rndid$rfpredomave <- (rndid$prom.v+rndid$prev.v)/2
+rndid$rfpredom.c <- center(rndid$rfpredom )
+rndid$rfpredomave.c <- center(rndid$rfpredomave)
+
 # Self-Esteem
 rndid$se2r <- 8-rndid$se2
 rndid$se5r <- 8-rndid$se5
@@ -310,9 +321,48 @@ rndid$se.c <- scale(rndid$se.v, center=T, scale=F)
 
 ## Merging RT data with individual difference variables
 ```{r}
-
+summary(mle3b) # SD of valence effect = .14
 datamerge <- merge(rndid, rndtz, by = "ID")
 
+### With Regulatory Focus
+modindiv1 <- (lmer(rt ~ valenceE*prom.c*prev.c + trial40c + (1 + valenceE| id),  data=datamerge))
+summary(modindiv1)
+# significant interaction of valence and promotion
+# marginally significant interaction of valence and prevention
+# SD of valence effects = .13
+library(effects)
+plot(effect(term="valenceE:prom.c",mod=modindiv1,default.levels=2),multiline=TRUE)
+plot(effect(term="valenceE:prev.c",mod=modindiv1,default.levels=2),multiline=TRUE)
+# Note: no moderation by promotion predominance, but there is a moderating effect of overall RF strength (average of promotion and prevention)
+
+
+### Self-Esteem
+modindiv2 <- (lmer(rt ~ valenceE*se.c + trial40c + (1 + valenceE| id),  data=datamerge))
+summary(modindiv2)
+# SD of valence effect: .13
+plot(effect(term="valenceE:se.c",mod=modindiv2,default.levels=2),multiline=TRUE)
+
+### Regulatory Mode Predominance
+modindiv3 <- (lmer(rt ~ valenceE*rmpredom.c*rmpredomave.c + trial40c + (1 + valenceE| id),  data=datamerge))
+summary(modindiv3)
+# significant interaction of valence and locomotion predominance
+plot(effect(term="valenceE:rmpredom.c",mod=modindiv3,default.levels=2),multiline=TRUE)
+# Note: no moderation by locomotion or assessment when used as separate predictors
+
+
+modeleffect.re <- ranef(mle3b)
+res1<-data.frame(as.numeric(rownames(modeleffect.re$id)),modeleffect.re$id)
+colnames(res1)[1]="ID"
+res1$ID
+
+newd <- merge(res1, rndid, by = "ID")
+cor.test(newd$valenceE, newd$rmpredom.c) # significant correlation betw. RM predominance and valence random effects from original model
+
+cor.test(newd$valenceE, newd$prom.c) # significant correlation betw. promotion and valence random effects from original model
+
+cor.test(newd$valenceE, newd$prev.c) # NS correlation betw. prevention and valence random effects from original model
+
+cor.test(newd$valenceE, newd$se.c) # High significant correlation betw. self-esteem and valence random effects from original model
 
 ```
 
