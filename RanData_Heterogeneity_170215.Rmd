@@ -1,7 +1,7 @@
 ---
 title: "Ran Hassin Data - Heterogeneity"
 author: "Katherine Zee"
-date: "January 27, 2017"
+date: "March 29, 2017"
 output: html_document
 ---
 
@@ -306,4 +306,108 @@ cor.test(s7math2$math_anxiety, s7math2$math_self_rating) # weak marginal correla
 
 mathvarsmod <- lm(congr ~ math_anxiety, data = s7math2)
 summary(mathvarsmod)
+
+
 ```
+
+## Ran Experiment 2
+```{r}
+# NOV (exp 2) ####
+
+library(foreign)
+ran <- read.spss("Experiments.2.3.valanced.phrases.sav", to.data.frame=TRUE)
+
+# subset
+nov <- ran[ which(ran$Exp != 'Replication') , ]
+
+# fixed only
+summary(lm(RT ~ indiv, nov))
+
+# with random int + slope 
+
+ran2mle <- (lmer(RT ~ indiv + (1 + indiv| SsNum),  data=nov))
+summary(ran2mle)
+
+#  raw data panel plots, unsorted
+ggplot(data=nov, aes(x=indiv, y=RT)) +
+  geom_jitter(aes(color=as.factor(indiv)), position = position_jitter(width = .2), size=1.5) +
+  labs(title = "RT by Valence In Ran Exp 2", x="id", y="Log RT") +
+  stat_summary(aes(group=indiv), fun.y = mean, geom="point", colour="black", size=2) +
+  stat_summary(fun.data=mean_cl_boot, geom='errorbar', size = .5) +
+  scale_color_manual(values=c("orangered3", "green4")) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position='none',
+        plot.title = element_text(lineheight=.8, face="bold"),
+        axis.title.y = element_text(face="bold", vjust=0.5),
+        axis.title.x = element_text(face="bold", vjust=-0.35)) +
+  facet_wrap(~SsNum) 
+
+ran2mle.re <- (ranef(ran2mle)$SsNum[2]) + 1.06570
+
+# Dotplot 
+ran2mle.re <- as.vector((ran2mle.re))
+quantile(ran2mle.re[,1], probs=c(.025, .5, .975))
+
+#pdf("random_face_dotplot.pdf", width = 16, height = 8) 
+stripchart(ran2mle.re, pch=21, bg="skyblue", cex=2, lwd=2,
+            xlim=c(0.95, 1.25), xlab="Individual Slopes in RT to Valence (Exp 2)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(0.9935261, 1.0537318, 1.1950433 ), col = c("red", "black", "red"),
+       lwd = 3)
+#dev.off()
+
+```
+
+## Ran Experiment 3
+```{r}
+# REP (exp 3) ####
+
+library(foreign)
+ran <- read.spss("Experiments.2.3.valanced.phrases.sav", to.data.frame=TRUE)
+
+# subset
+rep <- ran[ which(ran$Exp == 'Replication') , ]
+
+# fixed only
+summary(lm(RT ~ indiv, rep))
+
+# with random int + slope 
+
+ran3mle <- (lmer(RT ~ indiv + (1 + indiv| SsNum),  data=rep))
+summary(ran3mle)
+
+#  raw data panel plots, unsorted
+ggplot(data=rep, aes(x=indiv, y=RT)) +
+  geom_jitter(aes(color=as.factor(indiv)), position = position_jitter(width = .2), size=1.5) +
+  labs(title = "RT by Valence In Ran Exp 3", x="id", y="Log RT") +
+  stat_summary(aes(group=indiv), fun.y = mean, geom="point", colour="black", size=2) +
+  stat_summary(fun.data=mean_cl_boot, geom='errorbar', size = .5) +
+  scale_color_manual(values=c("orangered3", "green4")) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position='none',
+        plot.title = element_text(lineheight=.8, face="bold"),
+        axis.title.y = element_text(face="bold", vjust=0.5),
+        axis.title.x = element_text(face="bold", vjust=-0.35)) +
+  facet_wrap(~SsNum) 
+
+ran3mle.re <- (ranef(ran3mle)$SsNum[2]) + 1.25653
+
+# Dotplot 
+ran3mle.re <- as.vector((ran3mle.re))
+quantile(ran3mle.re[,1], probs=c(.025, .5, .975))
+
+#pdf("random_face_dotplot.pdf", width = 16, height = 8) 
+stripchart(ran3mle.re, pch=21, bg="skyblue", cex=2, lwd=2,
+           xlim=c(1.08, 1.60), xlab="Individual Slopes in RT to Valence (Exp 3)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(1.115278 ,1.232413, 1.562287  ), col = c("red", "black", "red"),
+       lwd = 3)
+#dev.off()
+```
+
+
+
