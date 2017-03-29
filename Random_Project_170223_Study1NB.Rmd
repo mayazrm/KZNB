@@ -127,18 +127,21 @@ mle1b <- (lm(rtms~valenceE + trial40c, data = rndtz)) #run on raw rt
 summary(mle1b)
 
 #random intercept model
-mle2a <- (lmer(logrt ~ valenceE + trial40c + (1 | id),  data=rndtz))
-summary(mle2a)
+mle2aa <- (lmer(logrt ~ valenceE + (1 | id),  data=rndtzz))
+summary(mle2aa)
 mle2b <- (lmer(rtms ~ valenceE + trial40c + (1 | id),  data=rndtz))
 summary(mle2b)
 
 #random intercept & slope of valence; not that rndtzz is used
 #dataset with at least some observations on pos and neg.
+write.csv(rndtzz, "rndtzz.csv", row.names = F)
+
 mle3a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtzz))
 summary(mle3a)
 #Remove the temporal order predictor for compatibility with SPSS
 mle3aa <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtzz))
 summary(mle3aa)
+
 #Confint
 confmle3aa<-confint(mle3aa)
 

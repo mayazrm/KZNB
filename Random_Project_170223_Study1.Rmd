@@ -70,7 +70,6 @@ selfrelplot
 #ggsave(selfrelplot, file = "selfrelplot_N62_170218.pdf", height = 40/2.54, width = 64/2.54)
 ```
 
-
 # MLE Analyses 
 ```{r}
 ## Updates - Stricter Exclusion Cutoff 2 ######
@@ -89,7 +88,6 @@ rndtz$valenceE.c <- center(rndtz$valenceE)
 rndtz<- within(rndtz, {valenceE.mean = ave(valenceE, id, FUN = mean)})
 rndtz$valenceE.wc <- rndtz$valenceE - rndtz$valenceE.mean
 rndtz$valenceE.bc <- rndtz$valenceE.c - rndtz$valenceE.wc
-
 
 # standard model -- Significant main effect of valence
 mle1a <- (lm(logrt~valenceE + trial40c, data = rndtz))
@@ -231,9 +229,9 @@ abline(v=c((-174.426-2*150.26), -174.426, (-174.426+2*150.26)), col = c("darkgra
 
 ```
 
-
-```{r}
 ### Creating Aggregated Dataset (2 rows per person)
+```{r}
+
 
 rndtz<- within(rndtz, {val.meanlog = ave(logrt, valenceE, id, FUN = mean)})
 rndtz<- within(rndtz, {val.mean = ave(rtms, valenceE, id, FUN = mean)})
@@ -256,7 +254,6 @@ dplyr::group_by(aggs1a, valenceE)
 aggs1a %>% group_by(valenceE) %>% summarise(avge = mean(logrt))
 
 ```
-
 
 ## Code for computing individual difference variables
 ```{r}
@@ -323,23 +320,35 @@ rndid$se9r <- 8-rndid$se9
 rndid$se.all <- cbind(rndid$se1, rndid$se2r, rndid$se3, rndid$se4, rndid$se5r, rndid$se6r, rndid$se7, rndid$se8r, rndid$se9r, rndid$se10) 
 rndid$se.v <- as.vector(rowMeans(rndid$se.all, na.rm=T))
 rndid$se.c <- scale(rndid$se.v, center=T, scale=F)
-
 ```
+
 
 ## Merging RT data with individual difference variables
 ```{r}
 summary(mle3b) # SD of valence effect = .14
 datamerge <- merge(rndid, rndtz, by = "ID")
 
-### With Regulatory Focus
-modindiv1 <- (lmer(rt ~ valenceE*prom.c*prev.c + trial40c + (1 + valenceE| id),  data=datamerge))
+#Make small version for SPSS
+keep <- c("id", "rtms", "valenceE", "prom.c", "prev.c")
+dmergsmall <- datamerge[keep]
+
+#Write a SPSS version of the dataset
+library(foreign)
+write.foreign(dmergsmall, "C:/Users/Niall/Documents/KZNB/dmergsmall.txt", "C:/Users/Niall/Documents/KZNB/dmergsmall.sps",   package="SPSS")
+
+
+```
+
+### Moderation by Regulatory Focus
+```{r}
+modindiv1 <- (lmer(rtms ~ prom.c*prev.c*valenceE + trial40c + (1 + valenceE| id),  data=datamerge))
 summary(modindiv1)
 # significant interaction of valence and promotion
 # marginally significant interaction of valence and prevention
 # SD of valence effects = .13
 library(effects)
-plot(effect(term="valenceE:prom.c",mod=modindiv1,default.levels=2),multiline=TRUE)
-plot(effect(term="valenceE:prev.c",mod=modindiv1,default.levels=2),multiline=TRUE)
+plot(effect(term="prom.c:valenceE",mod=modindiv1,default.levels=2),multiline=TRUE)
+plot(effect(term="prev.c:valenceE",mod=modindiv1,default.levels=2),multiline=TRUE)
 # Note: no moderation by promotion predominance, but there is a moderating effect of overall RF strength (average of promotion and prevention)
 
 
@@ -366,8 +375,10 @@ newd <- merge(res1, rndid, by = "ID")
 cor.test(newd$valenceE, newd$rmpredom.c) # significant correlation betw. RM predominance and valence random effects from original model
 
 cor.test(newd$valenceE, newd$prom.c) # significant correlation betw. promotion and valence random effects from original model
+plot(newd$prom.c, newd$valenceE)
 
 cor.test(newd$valenceE, newd$prev.c) # NS correlation betw. prevention and valence random effects from original model
+plot(newd$prev.c, newd$valenceE)
 
 cor.test(newd$valenceE, newd$se.c) # High significant correlation betw. self-esteem and valence random effects from original model
 

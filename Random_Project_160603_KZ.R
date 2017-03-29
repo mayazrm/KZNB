@@ -6,7 +6,7 @@ setwd("/Users/zeekatherine")
 
 
 
-rnd <- read.csv("~/Desktop/R Files/Random_Project/random.proj_160526c.csv")
+rnd <- read.csv("~/KZNB/random.proj_160526c.csv")
 
 
 library(nlme)

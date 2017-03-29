@@ -79,9 +79,14 @@ rndtb2$rt.z <- scale(rndtb2$rt)
 sort(rndtb2$rt.z)
 rndtz <- subset(rndtb2,  rt.z < 3) #within 3 SD of the mean RT
 
+#Output csv file for use in SPSS
+write.csv(rndtz, file="rndtz.csv", row.names=FALSE)
+
+
 # standard model -- Significant main effect of valence
 mle1a <- (lm(logrt~valenceE + trial40c, data = rndtz))
 summary(mle1a)
+
 mle1b <- (lm(rtms~valenceE + trial40c, data = rndtz)) #run on raw rt
 summary(mle1b)
 
@@ -94,8 +99,23 @@ summary(mle2b)
 #random intercept & slope of valence
 mle3a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz))
 summary(mle3a)
+sconfint(mle3a)
+
+#Remove the temporal order predictor for compatibility with SPSS
+mle3aa <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtz))
+summary(mle3aa)
+exp(6.86471)
+exp(6.86471 -0.16219)
+exp(6.86471)- exp(6.86471 -0.16219)
+exp(c(-0.20647785, -0.1188546))
+
 mle3b <- lmer(rtms ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz)
 summary(mle3b)
+
+#Remove the temporal order predictor for compatibility with SPSS
+mle3bb <- lmer(rtms ~ valenceE + (1 + valenceE| id),  data=rndtz)
+summary(mle3bb)
+confint(mle3bb)
 
 
 #random intercept & slope of valence & random effects of time 
@@ -116,7 +136,7 @@ summary(mle5b)
 
 ```
 
-# MLE Dot Plot
+# MLE Dot Plot for full model
 ```{r}
 ranef.mle5b<- -174.426 + ranef(mle5b)$id[,2] #ValencE column
 
@@ -125,6 +145,22 @@ quantile(ranef.mle5b, probs=c(.025, .975))
 stripchart(ranef.mle5b, pch=21, bg="red", cex=3.5, lwd=2,
            xlim=c(-500, 150), xlab="Trait Valence Effect (in Milliseconds)", cex.axis=1.5, cex.lab=1.5)
 abline(v=c(-408, -161, 32), col = c("red", "black", "red"),
+       lwd = 3)
+
+# MLE Dot Plot for minimal model
+
+ranef.mle3aa<- -0.16219 + ranef(mle3aa)$id[,2] #ValencE column
+
+quantile(ranef.mle3aa, probs=c(.025, .975))
+quantile(ranef.mle3aa, probs=c(0, 1))
+
+#Compute population prediction interval for valenceE
+c(-0.16219 - 2*0.1251, -0.16219 + 2*0.1251)
+#[1] -0.41239  0.08801 (vs -0.33, 0.03) #Considerably wider
+
+stripchart(ranef.mle3aa, pch=21, bg="red", cex=3.5, lwd=2,
+           xlim=c(-0.45, 0.05), xlab="Trait Valence Effect (in log(Milliseconds))", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-0.38, -0.16219, 0.0282), col = c("red", "black", "red"),
        lwd = 3)
 
 ```
