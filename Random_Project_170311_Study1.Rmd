@@ -148,16 +148,18 @@ anova(lm(valenceE ~ 1 + idcat, data = rndtzz))
   # standard model -- Significant main effect of valence
 mle1a <- (lm(logrt~valenceE + trial40c, data = rndtz))
 summary(mle1a)
-mle1b <- (lm(rtms~valenceE + trial40c, data = rndtz)) #run on raw rt
+mle1b <- (lm(rtms~valenceE, data = rndtz)) #run on raw rt
 summary(mle1b)
 
 #random intercept model
 mle2aa <- (lmer(logrt ~ valenceE + (1 | id),  data=rndtzz))
 summary(mle2aa)
-mle2b <- (lmer(rtms ~ valenceE + trial40c + (1 | id),  data=rndtz))
-summary(mle2b)
 
-#random intercept & slope of valence; not that rndtzz is used
+mle2bb <- (lmer(rtms ~ valenceE + (1 | id),  data=rndtzz))
+summary(mle2bb)
+confint2bb<-confint(mle2bb)
+
+#random intercept & slope of valence; note that rndtzz is used
 #dataset with at least some observations on pos and neg.
 write.csv(rndtzz, "rndtzz.csv", row.names = F)
 
