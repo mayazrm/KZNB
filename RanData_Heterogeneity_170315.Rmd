@@ -70,10 +70,10 @@ WAIC(ran6mod1b, ran6mod2b)
 
 # Extracts all samples from the posterior
 post.ran6mod2b<-posterior.samples(ran6mod2b)
-#pdf("random_ran6_valence_histo.pdf", width = 12, height = 9) 
-hist(post.ran6mod2b$sd_subject_congr, breaks = 50, main = paste("Posterior Distribution of Valence Random Effect SD"), xlab="Valence Random Effect SD in Milliseconds", xlim = c(0, 30))
+pdf("random_ran6_congruence_histo.pdf", width = 12, height = 9) 
+hist(post.ran6mod2b$sd_subject_congr, breaks = 50, main = paste("Posterior Distribution of Congruence Random Effect SD"), xlab="Congruence Random Effect SD in Milliseconds", xlim = c(0, 30))
 median(post.ran6mod2b$sd_subject_congr)
-#dev.off()
+dev.off()
 
 
 # Study 6 Dotplot (MLE model with random slopes)
@@ -170,9 +170,42 @@ randata <- read.csv("DataPreProcessed.csv")
 
 randata$val <- ifelse(randata$Valance==-1, -.5, .5)
 
-randata$item <- randata$ItemNumber - 1
-# Is this the trial number (time) or the stimulus??
+randata$item <- randata$ItemNumber #Katherine, I've changed this, will explain later;
+# ItemNumber is a code for specific stimuli that are nested within pos/neg valence;
 
+#Write a SAS version of the dataset
+library(foreign)
+write.foreign(randata, "C:/Users/Niall/Documents/KZNB/randata.txt", "C:/Users/Niall/Documents/KZNB/randata.sas",   package="SAS")
+
+#Write a SPSS version of the dataset
+library(foreign)
+write.foreign(randata, "C:/Users/Niall/Documents/KZNB/randata.txt", "C:/Users/Niall/Documents/KZNB/randata.sps",   package="SPSS")
+
+```
+
+# Individual Plots (copied from another file)
+```{r}
+selfrelplot <- ggplot(data=randata, aes(x=val, y=RT)) +
+  geom_jitter(aes(color=as.factor(val)), position = position_jitter(width = .2), size=1.5) +
+  labs(title = "RT by Valence -- Hassin Data", x="id", y="RT") +
+  stat_summary(aes(group=val), fun.y = mean, geom="point", colour="black", size=2) +
+  stat_summary(fun.data=mean_cl_boot, geom='errorbar', size = .5) +
+  scale_color_manual(values=c("orangered3", "green4")) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position='none',
+        plot.title = element_text(lineheight=.8, face="bold"),
+        axis.title.y = element_text(face="bold", vjust=0.5),
+        axis.title.x = element_text(face="bold", vjust=-0.35)) +
+  facet_wrap(~SubjectNumber) 
+selfrelplot
+ggsave(selfrelplot, file = "selfrelplot_hassin_data.pdf", height = 40/2.54, width = 64/2.54)
+```
+
+
+```{r}
 ## random intercept only
 # MLE model
 modelint <- lmer(RT ~ val + (1 | SubjectNumber), data = randata)
@@ -189,23 +222,47 @@ WAIC(modelintb)
 
 
 ## random intercept and slope
-# MLE model
-modelslope <- lmer(RT ~ val + (val | SubjectNumber) + (1 | item), data = randata)
+# MLE model: Note cannot estimate item variance, so that term (1 | item) is dropped
+
+modelslopelog <- lmer(log(RT) ~ val + (val | SubjectNumber), data = randata)
+summary(modelslopelog)
+confint(modelslopelog, oldNames=FALSE)
+#anova(modelint, modelslope)
+#AIC(modelint, modelslope)
+
+
+modelslope <- lmer(RT ~ val + (val | SubjectNumber), data = randata)
 summary(modelslope)
-confint(modelint, oldNames=FALSE)
+confint(modelslope, oldNames=FALSE)
+anova(modelint, modelslope)
+AIC(modelint, modelslope)
 
 # Bayesian model
-modelslopeb <- brm(RT ~ val + (val | SubjectNumber), data = randata,
-                   chains = 3, cores = 4)
+modelslopeb <- brm(RT ~ val + (val | SubjectNumber), data = randata, chains = 3, cores = 4)
 summary(modelslopeb)
 WAIC(modelintb, modelslopeb)
+AIC(modelintb, modelslopeb)
+
+#Include random stimuli
+modelslopeb1 <- brm(RT ~ val + (val | SubjectNumber) + (1 | item), data = randata, chains = 3, cores = 4)
+summary(modelslopeb1)
+WAIC(modelslopeb, modelslopeb1)
+
 
 # Extracts all samples from the posterior
 post.modelslopeb<-posterior_samples(modelslopeb)
-hist(post.modelslopeb$sd_SubjectNumber__val, breaks=50)
-median(post.modelslopeb$sd_SubjectNumber__val)
+hist(post.modelslopeb$sd_SubjectNumber_val, breaks=50)
+pdf("random_ranval_valence_histo.pdf", width = 12, height = 9) 
+hist(post.modelslopeb$sd_SubjectNumber_val, breaks = 50, main = paste("Posterior Distribution of Valence Random Effect SD"), xlab="Valence Random Effect SD in Seconds", xlim = c(0, 0.2))
+median(post.ran6mod2b$sd_subject_congr)
+dev.off()
 
-#Get predicted values based on randint only
+median(post.modelslopeb$sd_SubjectNumber_val)
+plot(post.modelslopeb$sd_SubjectNumber_Intercept, post.modelslopeb$sd_SubjectNumber_val)
+hist(post.modelslopeb$cor_SubjectNumber_Intercept_val, breaks = 100, xlim=c(.2,1))
+median(post.modelslopeb$cor_SubjectNumber_Intercept_val)
+
+#Get predicted values based on randint only [what is this for?]
 predintonly<-predict(modelslopeb, re_formula = ~ (1 | SubjectNumber))
 randata$RTpred<-predintonly[,1] + rnorm(length(predintonly))
 
@@ -271,6 +328,8 @@ plot(modelslopeb, pars = NA, parameters = NA, combo = c("dens",
   "trace"), N = 5, exact_match = FALSE, theme = NULL, plot = TRUE,
   ask = F, newpage = TRUE, device = NULL)
 ```
+
+
 
 
 # With Math Variables Predicting Random Effects

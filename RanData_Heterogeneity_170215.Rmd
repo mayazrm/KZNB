@@ -2,7 +2,7 @@
 title: "Ran Hassin Data - Heterogeneity"
 author: "Katherine Zee"
 date: "January 27, 2017"
-output: html_document
+output: html_notebook
 ---
 
 ```{r }
