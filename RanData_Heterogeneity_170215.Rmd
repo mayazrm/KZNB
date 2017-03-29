@@ -348,3 +348,102 @@ cor.test(s7math2$math_anxiety, s7math2$math_self_rating) # weak marginal correla
 mathvarsmod <- lm(congr ~ math_anxiety, data = s7math2)
 summary(mathvarsmod)
 ```
+
+
+### With More Data from Ran
+```{r}
+setwd("~/KZNB/Ran Data")
+
+### With the face orientation dataset
+ranface <- read.csv("experiment7_facesorient.csv")
+
+
+ranface$fo1 <- ifelse(ranface$Face_orientation == 1, 1, 0)
+ranface$fo2 <- ifelse(ranface$Face_orientation == 2, 1, 0)
+ranface$trial.r <- ranface$trial -1
+
+library(lme4)
+library(lmerTest)
+
+ranfacem1 <- lmer(RT ~ fo1 + fo2 + trial.r + (fo1 + fo2 | Participant), data = ranface)
+summary(ranfacem1)
+ranfacem1.re <- (ranef(ranfacem1)$Participant[2]) + -5.091e-01
+
+
+
+ranfaceplot <- ggplot(data=ranface, aes(x=fo1, y=RT)) +
+  geom_jitter(aes(color=as.factor(fo1)), position = position_jitter(width = .2), size=1.5) +
+  labs(title = "RT by Face Orientation", x="id", y="RT") +
+  stat_summary(aes(group=fo1), fun.y = mean, geom="point", colour="black", size=2) +
+  stat_summary(fun.data=mean_cl_boot, geom='errorbar', size = .5) +
+  scale_color_manual(values=c("orangered3", "green4")) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position='none',
+        plot.title = element_text(lineheight=.8, face="bold"),
+        axis.title.y = element_text(face="bold", vjust=0.5),
+        axis.title.x = element_text(face="bold", vjust=-0.35)) +
+  facet_wrap(~Participant) 
+ranfaceplot
+ggsave(ranfaceplot, file = "ranfaceplot.pdf")
+
+# Dotplot 
+ranfacem1.re <- as.vector((ranfacem1.re))
+quantile(ranfacem1.re[,1], probs=c(.025, .5, .975))
+
+#pdf("random_face_dotplot.pdf", width = 16, height = 8) 
+stripchart(ranfacem1.re, pch=21, bg="skyblue", cex=2, lwd=2,
+           xlim=c(-1.2, .15), xlab="Individual Slopes in RT to Face Orientation", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-1.06, -0.5091, .01), col = c("red", "black", "red"),
+       lwd = 3)
+#dev.off()
+
+
+
+### With the emotion dataset
+setwd("~/KZNB/Ran Data")
+ranem <- read.csv("exp1_expressions.csv")
+
+ranem$emo1 <- ifelse(ranem$emotion ==1 , 1, 0)
+ranem$emo2 <- ifelse(ranem$emotion ==2 , 1, 0)
+ranem$trial.r <- ranem$Trial-1
+
+ranemm1 <- lmer(RT ~ emo1 + emo2 + trial.r + (emo1 + emo2 | Subj), data = ranem)
+summary(ranemm1)
+# bigger RE for emo2 variable
+ranemm1.re <- (ranef(ranemm1)$Subj["emo2"]) + -439.80029 
+
+
+ranemplot <- ggplot(data=ranem, aes(x=emo2, y=RT)) +
+  geom_jitter(aes(color=as.factor(emo2)), position = position_jitter(width = .2), size=1.5) +
+  labs(title = "RT by Emotion", x="id", y="RT") +
+  stat_summary(aes(group=emo2), fun.y = mean, geom="point", colour="black", size=2) +
+  stat_summary(fun.data=mean_cl_boot, geom='errorbar', size = .5) +
+  scale_color_manual(values=c("orangered3", "green4")) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position='none',
+        plot.title = element_text(lineheight=.8, face="bold"),
+        axis.title.y = element_text(face="bold", vjust=0.5),
+        axis.title.x = element_text(face="bold", vjust=-0.35)) +
+  facet_wrap(~Subj) 
+ranemplot
+#ggsave(ranemplot, file ="ranemplot.pdf")
+
+
+# Dotplot 
+quantile(ranemm1.re[,1], probs=c(.025, .5, .975))
+
+#pdf("random_emotion_dotplot.pdf", width = 16, height = 8) 
+stripchart(ranemm1.re, pch=21, bg="skyblue", cex=2, lwd=2,
+           xlim=c(-880, 0), xlab="Individual Slopes in RT to Emotion", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-826.84186, -439.80029, -81.19836 ), col = c("red", "black", "red"),
+       lwd = 3)
+#dev.off()
+
+```
+
