@@ -391,6 +391,7 @@ ordranfacefo1 <-ordranface[ordranface$Face_orientation!=2, ]
 
 #Panel plots ordered by size of fo1 random effect
 windows()
+pdf("ranface-fitted-panels.pdf", width = 10, height = 12)
 par(mfrow=c(5,5))
 for (i in ordranfacem1.ranef$Participant) {
   plot(jitter(ordranfacefo1$fo1[ordranfacefo1$Participant==i], .2), 
@@ -401,6 +402,7 @@ for (i in ordranfacem1.ranef$Participant) {
   lines(ordranfacefo1$fo1[ordranfacefo1$Participant==i], 
   ordranfacefo1$pred[ordranfacefo1$Participant==i], lwd=2, col="red")
 }
+dev.off()
 ```
 
 
