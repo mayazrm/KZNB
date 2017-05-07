@@ -351,23 +351,73 @@ summary(mathvarsmod)
 
 
 ### With More Data from Ran
+## With the face orientation dataset
 ```{r}
 setwd("~/KZNB/Ran Data")
 
-### With the face orientation dataset
 ranface <- read.csv("experiment7_facesorient.csv")
-
 
 ranface$fo1 <- ifelse(ranface$Face_orientation == 1, 1, 0)
 ranface$fo2 <- ifelse(ranface$Face_orientation == 2, 1, 0)
 ranface$trial.r <- ranface$trial -1
 
+write.csv(x = ranface, file = "ranface.csv", row.names=F)
+
 library(lme4)
 library(lmerTest)
 
-ranfacem1 <- lmer(RT ~ fo1 + fo2 + trial.r + (fo1 + fo2 | Participant), data = ranface)
+#Run Model
+ranfacem1 <- lmer(RT ~ fo1 + fo2 + (fo1 + fo2 | Participant), data = ranface)
 summary(ranfacem1)
-ranfacem1.re <- (ranef(ranfacem1)$Participant[2]) + -5.091e-01
+
+#Get Ranefs for f01
+#Add ID Column
+#Order by Ranef Size
+ranfacem1.ranef<-ranef(ranfacem1)$Participant
+ranfacem1.ranef$Participant <- as.numeric(row.names(ranfacem1.ranef))
+ranfacem1.ranef$fo1 <- ranfacem1.ranef$fo1 -5.0919e-01
+ordranfacem1.ranef <- ranfacem1.ranef[order(ranfacem1.ranef$fo1), ]
+
+#Add Predicted Values to ranface
+ranface$pred <- fitted(ranfacem1)
+
+#Order ranface by Participant, Face-orientation, predicted value
+ordranface <- ranface[order(ranface$Participant, 
+                            ranface$Face_orientation, ranface$pred), ]
+
+#Select Upright and Upside-Down trials
+ordranfacefo1 <-ordranface[ordranface$Face_orientation!=2, ]
+
+
+#Panel plots ordered by size of fo1 random effect
+windows()
+pdf("ranface-fitted-panels.pdf", width = 10, height = 12)
+par(mfrow=c(5,5))
+for (i in ordranfacem1.ranef$Participant) {
+  plot(jitter(ordranfacefo1$fo1[ordranfacefo1$Participant==i], .2), 
+       ordranfacefo1$RT[ordranfacefo1$Participant==i],
+       ylab="RT (ms)", xlab="Upright",
+       type="p", pch=19, col="blue", ylim=c(.2, 8), xlim=c(0, 1),
+       main=paste(round(ordranfacem1.ranef$fo1[ordranfacem1.ranef$Participant==i], digits=2), sep = " "))
+  lines(ordranfacefo1$fo1[ordranfacefo1$Participant==i], 
+  ordranfacefo1$pred[ordranfacefo1$Participant==i], lwd=2, col="red")
+}
+dev.off()
+```
+
+
+# Bayesian Estimation of Face-Orientation Data
+```{r}
+library(brms)
+ranfaceb1 <- brm(RT ~ fo1 + fo2 + (fo1 + fo2 | Participant), data = ranface,
+                 chains=4, cores=4)
+summary(ranfaceb1)
+ranfaceb2 <- brm(RT ~ fo1 + fo2 + (fo2 | Participant), data = ranface,
+                 chains=4, cores=4)
+summary(ranfaceb2)
+
+LOO(ranfaceb1, ranfaceb2)
+WAIC(ranfaceb1, ranfaceb2) #ranfaceb1 - ranfaceb2  WAIC -42.88  SE 14.66
 
 
 
@@ -387,7 +437,7 @@ ranfaceplot <- ggplot(data=ranface, aes(x=fo1, y=RT)) +
         axis.title.x = element_text(face="bold", vjust=-0.35)) +
   facet_wrap(~Participant) 
 ranfaceplot
-ggsave(ranfaceplot, file = "ranfaceplot.pdf")
+ggsave(ranfaceplot, file = "ranfaceplot2.pdf")
 
 # Dotplot 
 ranfacem1.re <- as.vector((ranfacem1.re))
@@ -399,10 +449,11 @@ stripchart(ranfacem1.re, pch=21, bg="skyblue", cex=2, lwd=2,
 abline(v=c(-1.06, -0.5091, .01), col = c("red", "black", "red"),
        lwd = 3)
 #dev.off()
+```
 
 
-
-### With the emotion dataset
+## With the emotion dataset
+```{r}
 setwd("~/KZNB/Ran Data")
 ranem <- read.csv("exp1_expressions.csv")
 
@@ -410,10 +461,13 @@ ranem$emo1 <- ifelse(ranem$emotion ==1 , 1, 0)
 ranem$emo2 <- ifelse(ranem$emotion ==2 , 1, 0)
 ranem$trial.r <- ranem$Trial-1
 
-ranemm1 <- lmer(RT ~ emo1 + emo2 + trial.r + (emo1 + emo2 | Subj), data = ranem)
-summary(ranemm1)
+write.csv(x = ranem, file = "ranem.csv", row.names=F)
+
+#ranemm1 <- lmer(RT ~ emo1 + emo2 + trial.r + (emo1 + emo2 | Subj), data = #ranem)
+ranemm1 <- lmer(RT ~ emo1 + emo2 + (emo1 + emo2 | Subj), data = ranem)
+summary(ranemm1) #Run without trial.r to compare with SPSS
 # bigger RE for emo2 variable
-ranemm1.re <- (ranef(ranemm1)$Subj["emo2"]) + -439.80029 
+ranemm1.re <- (ranef(ranemm1)$Subj["emo2"]) + -439.92 
 
 
 ranemplot <- ggplot(data=ranem, aes(x=emo2, y=RT)) +
@@ -446,4 +500,3 @@ abline(v=c(-826.84186, -439.80029, -81.19836 ), col = c("red", "black", "red"),
 #dev.off()
 
 ```
-

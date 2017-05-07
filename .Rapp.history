@@ -1,0 +1,99 @@
+library(MASS)
+library(mediation)
+remove.packages("minqa")
+install.packages("minqa")
+library(minqa)
+library(mediation)
+library(psych)
+remove.packages('mnormt')
+install.packages('mnormt')
+library(mnormt)
+library(psych)
+library(rockchalk)
+remove.packages("SparseM")
+install.package("SparseM")
+install.packages("SparseM")
+q()
+library(SparseM)
+library(psych)
+library(rockchalk)
+library(nlme)
+library(lme4)
+library(ggplot2)
+library(car)
+q90
+1()
+q()
+rnorm(100)
+setwd("~/KZNB")#
+rnd <- read.csv("randomproject_data_aggregated_161021.csv")#
+rndt <- rnd#
+#
+library(nlme)#
+library(lme4)#
+library(ggplot2)#
+library(lmerTest)#
+theme_set(theme_bw(base_size = 14))#
+#For Bayesian analysis:#
+library(brms)#
+library(car)#
+#For dotplots#
+library(Rcmdr)
+# so that one unit (-.5, .5) = duration of study#
+rndt$trial40 <- (rndt$trials.thisN + 1) #
+rndt$trial40c <- (rndt$trial40 - 20)/40#
+#
+rndt$rt <- rndt$response.rt#
+#rndt$logrt <- log(rndt$response.rt)#
+#
+rndt$id <- rndt$ID#
+#
+rndt$valenceE <-recode(rndt$valence, as.factor.result=F, '"negative" = -0.5; "positive" = 0.5')#
+#
+rndt$rtms <- rndt$rt*1000#
+rndt$logrt <- log(rndt$rtms)
+rndtb2 <- subset(rndt, response.keys == "up")
+# so that one unit (-.5, .5) = duration of study#
+rndt$trial40 <- (rndt$trials.thisN + 1) #
+rndt$trial40c <- (rndt$trial40 - 20)/40#
+#
+rndt$rt <- rndt$response.rt#
+#rndt$logrt <- log(rndt$response.rt)#
+#
+rndt$id <- rndt$ID#
+#
+rndt$valenceE <-recode(rndt$valence, as.factor.result=F, '"negative" = -0.5; "positive" = 0.5')#
+#
+rndt$rtms <- rndt$rt*1000#
+rndt$logrt <- log(rndt$rtms)#
+#
+rndtb2 <- subset(rndt, response.keys == "up")#
+#
+rndtb2 <- subset(rndt, response.keys == "up")#
+rndtb <- subset(rndtb2, rt >= .01 & rt < 1.45) #90th percentile or below#
+rndtb2$rt.z <- scale(rndtb2$rt)#
+sort(rndtb2$rt.z)#
+rndtz <- subset(rndtb2,  rt.z < 3) #within 3 SD of the mean RT
+mle5a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) + (1 | word),  data=rndtz))
+library(ggplot2)#
+library(ggthemes)#
+modeleffect.re <- ranef(mle5a)#
+res1<-data.frame(as.numeric(rownames(modeleffect.re$id)),modeleffect.re$id)#
+colnames(res1)[1]="id"#
+res1$Intecept <- res1$X.Intercept.#
+#
+res1$newint <- modeleffect.re$id[,"(Intercept)"] + fixef(mle5a)["(Intercept)"] #
+res1$newslope <- modeleffect.re$id[,"valenceE"] + fixef(mle5a)["valenceE"]
+spaghettiplot <- ggplot(rndtz, aes(valenceE, logrt)) +#
+  geom_abline(res1, intercept = res1$newint, slope = res1$newslope, color="blue", lwd = 1, alpha = .5) + #
+    geom_abline(res1, mapping=aes(intercept = fixef(mle5a)["(Intercept)"], slope = fixef(mle5a)[2]), color="violetred4", lwd = 2, alpha = 1) + #
+#
+  theme_few() + #
+  labs(x = "Valence", y = "Reaction Time in ms (log transformed)")+#
+  theme(text=element_text(size=20))#
+spaghettiplot#
+#ggsave(spaghettiplot, file = "spaghettiplot.pdf", height = 7, width = 5)
+spaghettiplot
+spaghettiplot <- ggplot(rndtz, aes(valenceE, logrt)) +#
+  geom_abline(rndtz, intercept = res1$newint, slope = res1$newslope, color="blue", lwd = 1, alpha = .5)
+spaghettiplot
