@@ -3,6 +3,11 @@ title: "Heterogeneity Project - Analyses for Study 1A"
 output: html_notebook
 ---
 
+---
+title: "Heterogeneity Project - Analyses for Study 1A"
+output: html_notebook
+---
+
 
 # Load Data and Packages
 ```{r}
@@ -70,6 +75,7 @@ selfrelplot
 #ggsave(selfrelplot, file = "selfrelplot_N62_170218.pdf", height = 40/2.54, width = 64/2.54)
 ```
 
+
 # MLE Analyses 
 ```{r}
 ## Updates - Stricter Exclusion Cutoff 2 ######
@@ -78,6 +84,35 @@ rndtb <- subset(rndtb2, rt >= .01 & rt < 1.45) #90th percentile or below
 rndtb2$rt.z <- scale(rndtb2$rt)
 sort(rndtb2$rt.z)
 rndtz <- subset(rndtb2,  rt.z < 3) #within 3 SD of the mean RT
+
+#To get balanced version of data without selecting self relevant traits
+library(dplyr)
+dplyr::group_by(rndt, id)
+rndt %>% group_by(id) %>% summarise(avge = mean(logrt))
+#Create version where there are no missing data
+rndt2 <- rndt[!(rndt$id %in% c(201, 206, 207, 209, 212, 234, 235, 238, 239, 246, 248, 252, 262, 263, 265, 268, 302, 303)), ]
+rndt2 <- within(rndt2, {
+  idcat <- as.factor(id)
+  valcat<- as.factor(valenceE)
+  val2cat <- as.factor(valence2)
+})
+#Write dataset for use in SAS
+write.csv(rndt2, "rndt2.csv", row.names = F)
+
+#Try version of valenceE that is coded -1, +1
+rndt2$valence2 <- rndt2$valenceE*2
+summary(lmer(logrt ~ valence2 + (1 + valence2| id),  data=rndt2))
+summary(aov(logrt ~ valence2 + Error(idcat/valence2), data=rndt2))
+
+#Try version with valence at categorical
+summary(aov(logrt ~ valcat + Error(idcat/valcat), data=rndt2))
+summary(lmer(logrt ~ val2cat + (1 + val2cat| id),  data=rndt2))
+
+summary(lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndt2))
+summary(aov(logrt ~ valenceE + Error(idcat/valenceE), data=rndt2))
+#valence by subject Variance calc:
+(6.730/43 - 99.49/1672)/0.009701
+(6.730/43 - 99.49/1672)/20
 
 
 # within & between person centered valence
@@ -89,6 +124,7 @@ rndtz<- within(rndtz, {valenceE.mean = ave(valenceE, id, FUN = mean)})
 rndtz$valenceE.wc <- rndtz$valenceE - rndtz$valenceE.mean
 rndtz$valenceE.bc <- rndtz$valenceE.c - rndtz$valenceE.wc
 
+
 # standard model -- Significant main effect of valence
 mle1a <- (lm(logrt~valenceE + trial40c, data = rndtz))
 summary(mle1a)
@@ -96,20 +132,38 @@ mle1b <- (lm(rtms~valenceE + trial40c, data = rndtz)) #run on raw rt
 summary(mle1b)
 
 #random intercept model
-mle2a <- (lmer(logrt ~ valenceE + trial40c + (1 | id),  data=rndtz))
-summary(mle2a)
+mle2aa <- (lmer(logrt ~ valenceE + (1 | id),  data=rndtzz))
+summary(mle2aa)
 mle2b <- (lmer(rtms ~ valenceE + trial40c + (1 | id),  data=rndtz))
 summary(mle2b)
 
-#random intercept & slope of valence
-mle3a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz))
-summary(mle3a)
-ci99 <- confint(mle3a, level = .99, oldNames=F)
-ci95 <- confint(mle3a, level = .95, oldNames=F)
-ci90 <- confint(mle3a, level = .90, oldNames=F)
+#random intercept & slope of valence; not that rndtzz is used
+#dataset with at least some observations on pos and neg.
+write.csv(rndtzz, "rndtzz.csv", row.names = F)
 
-mle3b <- lmer(rt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz)
+mle3a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtzz))
+summary(mle3a)
+#Remove the temporal order predictor for compatibility with SPSS
+mle3aa <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtzz))
+summary(mle3aa)
+
+#Confint
+confmle3aa<-confint(mle3aa)
+
+exp(6.86471)
+exp(6.86471 -0.16219)
+exp(6.86471)- exp(6.86471 -0.16219)
+exp(c(-0.20647785, -0.1188546))
+
+
+
+mle3b <- lmer(rtms ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz)
 summary(mle3b)
+
+#Remove the temporal order predictor for compatibility with SPSS
+mle3bb <- lmer(rtms ~ valenceE + (1 + valenceE| id),  data=rndtz)
+summary(mle3bb)
+confint(mle3bb)
 
 
 #random intercept & slope of valence & random effects of time 
@@ -125,16 +179,8 @@ summary(mle5a)
 cnf.fe.mle5a <- confint(mle5a, "theta_") #elements of lower triang RE cov mat
 cnf.fe.mle5a <- confint(mle5a, "beta-")  #FEs
 
-# with labels:
-cnf.fe.mle5a_lab <- confint(mle5a, oldNames = FALSE) #elements of lower triang RE cov mat
-
-
-mle5b <- lme4::lmer(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtz)
+mle5b <- (lmer(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtz))
 summary(mle5b)
-
-confint(mle5b, level = .99)
-# see: https://www.rdocumentation.org/packages/lme4/versions/1.1-12/topics/confint.merMod
-
 
 ```
 
@@ -229,31 +275,100 @@ abline(v=c((-174.426-2*150.26), -174.426, (-174.426+2*150.26)), col = c("darkgra
 
 ```
 
-### Creating Aggregated Dataset (2 rows per person)
+
 ```{r}
+#Create factor version of id in aggfile
+aggs1aa <- within(aggs1aa, {
+  idcat <- as.factor(id)
+})
+
+write.csv(aggs1aa, "aggs1aa.csv", row.names = F)
+
+#Wide version of aggregated data
+tst<-subset(aggs1aa, valenceE==-.5)
+tst1<-subset(aggs1aa, valenceE==0.5)
+aggs1aawide <- data.frame(cbind(tst$id, tst$logrt, tst1$logrt))
+colnames(aggs1aawide) <- c("id", "rtneg", "rtpos")
+write.csv(aggs1aawide, "aggs1aawide.csv", row.names = F)
+
+#Create factor version of id in disagg file
+rndtzz <- within(rndtzz, {
+  idcat <- as.factor(id)
+})
 
 
-rndtz<- within(rndtz, {val.meanlog = ave(logrt, valenceE, id, FUN = mean)})
-rndtz<- within(rndtz, {val.mean = ave(rtms, valenceE, id, FUN = mean)})
+aggs1aa.out = aov(logrt ~ valenceE + idcat, data=aggs1aa)
+summary(aggs1aa.out)
 
-newfile <- data.frame(rndtz$id, rndtz$valenceE, rndtz$val.mean, rndtz$val.meanlog)
-colnames(newfile) <- c("id", "valenceE", "val.mean", "val.meanlog")
-View(newfile)
+rms1a.out <- aov(logrt ~ valenceE + idcat + Error(idcat*valenceE), data=rndtzz)
+summary(rms1a.out)
 
-study1A_aggfile <- unique(newfile)
-colnames(study1A_aggfile) <- c("id", "valenceE", "rtms", "logrt")
-#write.csv(study1A_aggfile, "study1A_aggfile.csv", row.names = F)
+#Shows that you get identical results as aov() if you use
+#lm with dummy variables for person
+anova(lm(logrt ~ valenceE + idcat, data = aggs1aa))
 
-aggs1a <- read.csv("study1A_aggfile.csv")
+#Run interaction model
+anova(lm(logrt ~ valenceE + idcat, data = rndtzz))
+anova(lm(logrt ~ valenceE*idcat, data = rndtzz))
 
-aggs1a.out = aov(logrt ~ valenceE + Error(id/valenceE), data=aggs1a)
-summary(aggs1a.out)
-
+#Find cases with only one observation on aggregated valenceE
+#by calculating the mean 
 library(dplyr)
 dplyr::group_by(aggs1a, valenceE)
 aggs1a %>% group_by(valenceE) %>% summarise(avge = mean(logrt))
 
+t.test(aggs1aa$logrt[aggs1aa$valenceE == -0.5], aggs1aa$logrt[aggs1aa$valenceE == 0.5], alternative='two.sided', conf.level=.95, paired=TRUE)
+
+#Calc variance of valence effect from repeated measures output
+(1.0586)/58 = 0.0183
+
+#Do version of mle analysis with subjects that have variance on valenceE. Look at the complexity of this statement:
+rndtzz<-rndtz[!(rndtz$id %in% c(250, 257, 272)), ]
+#Now rerun the analysis on those subejcts
+mle3aaa <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtzz))
+summary(mle3aaa)
+
 ```
+
+
+```{r}
+### Creating Aggregated Version of Balanced Dataset (2 rows per person)
+
+temprnd<- within(rndt2, {val.meanlog = ave(logrt, valenceE, id, FUN = mean)})
+temprnd<- within(temprnd, {val.mean = ave(rtms, valenceE, id, FUN = mean)})
+
+temprndfile <- data.frame(temprnd$id, temprnd$valenceE, temprnd$val.mean, temprnd$val.meanlog)
+colnames(temprndfile) <- c("id", "valenceE", "val.mean", "val.meanlog")
+View(temprndfile)
+
+aggbalanced <- unique(temprndfile)
+
+colnames(aggbalanced) <- c("id", "valenceE", "rtms", "logrt")
+write.csv(aggbalanced, "aggbalanced.csv", row.names = F)
+
+#Load aggregate file.
+aggbalanced <- read.csv("aggbalanced.csv")
+aggbalanced <- within(aggbalanced, {
+  idcat <- as.factor(id)
+  valcat<- as.factor(valenceE)
+})
+
+#Runs comparing agg and nonagg for balanced dataset
+summary(lmer(logrt ~ valenceE + (1| idcat),  data=aggbalanced))
+summary(aov(logrt ~ valenceE*idcat + Error(valenceE*idcat), data=aggbalanced)) #Same estimates of valence plus error effects
+
+summary(lmer(logrt ~ valenceE + (1 + valenceE| idcat),  data=rndt2))
+summary(aov(logrt ~ valenceE + Error(idcat/valenceE), data=rndt2))
+
+summary(lmer(logrt ~ valence2 + (1 + valence2| idcat),  data=rndt2))
+
+summary(aov(logrt ~ valence2 + Error(idcat/valence2), data=rndt2))
+
+(0.1565116-0.05950359)/20 #Variance for valence coded -1, +1
+```
+
+
+
 
 ## Code for computing individual difference variables
 ```{r}
@@ -325,8 +440,7 @@ rndid$se.c <- scale(rndid$se.v, center=T, scale=F)
 
 ## Merging RT data with individual difference variables
 ```{r}
-summary(mle3b) # SD of valence effect = .14
-datamerge <- merge(rndid, rndtz, by = "ID")
+datamerge <- merge(rndid, rndtzz, by = "ID")
 
 #Make small version for SPSS
 keep <- c("id", "rtms", "valenceE", "prom.c", "prev.c")
@@ -381,24 +495,11 @@ promneg$rthi <- promneg$rtpos+1.96*sqrt(pvarpromneg)
 
 
 
-library(ggplot2)
-library(ggthemes)
-valencexprom <- ggplot(prompos, aes(prom.c, rtpos)) +
-  geom_ribbon(aes(ymin=rtlo, ymax=rthi), alpha = .2, fill = "darkgreen") +
-  geom_line(size = 2, color = "darkgreen") +
-  geom_point(data = datamerge, aes(prom.c, logrt), position = position_jitter(h=0.05, w=0.1), alpha=.5, color = valenceE)+
-  labs(x = "\n Promotion Focus\n(mean centered)", y = "Log RT" )  + theme_few() + theme(text=element_text(size=20))
-ggsave(valencexprom, file = "valencexprom.pdf", height = 6, width = 8)
-
-
-
-
-
 
 datamerge$valenceE_fac <- ifelse(datamerge$valenceE==.5, "pos", "neg")
 datamerge$valenceE_fac <- as.factor(datamerge$valenceE_fac)
 
-#pdf("valenceXprom_figure.pdf", width = 9, height = 8) 
+pdf("valenceXprom_figure.pdf", width = 9, height = 8) 
 plot(jitter(datamerge$prom.c), jitter(datamerge$logrt), pch = c("neg" = 1, "pos" = 19)[datamerge$valenceE_fac],
      frame = F, ylim=c(5.8, 7.8), col = c("neg" = "gray30", "pos" = "darkgreen")[datamerge$valenceE_fac], cex  = .5, cex.lab = 1.3, cex.axis = 1.3,
      xlim=c(-1.8, 1), xlab="Promotion Focus (mean centered)", 
@@ -421,7 +522,7 @@ legend(-1.4,6, c("Negatively Valenced Words", "Positively Valenced Words"),
        lty=c('longdash','solid'), # gives the legend appropriate symbols (lines)
        lwd=c(2,2),col=c('gray30','darkgreen'),
        pch = c(1, 19), cex = .8, pt.cex = 1)
-#dev.off()
+dev.off()
 
 
 ```
