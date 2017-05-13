@@ -23,29 +23,95 @@ library(Rcmdr)
 
 ## Ran PNAS Study 6
 ```{r}
-setwd("/Users/zeekatherine/KZNB/Ran Data")
-setwd("C:/Users/Niall/Dropbox/NIALL1/MET/Suppes Talk/Heterogeneity")
+#setwd("/Users/zeekatherine/KZNB/Ran Data")
+setwd("~/KZNB")
 
-ran6a <- read.csv("exp6_all_data_long.csv")
-ran6 <- subset(ran6a, exclude_from_analysis == "FALSE" & operand == "S")
+ran6a <- read.csv("~/KZNB/Ran Data/exp6_all_data_long.csv")
+
+ran6 <- subset(ran6a, exclude_from_analysis == "FALSE" & operand == "S" & rt != "NA")
 
 ran6$presentation_time_f <- as.factor(ran6$presentation_time)
 
 ran6$congr <- ifelse(ran6$congruent == "no", -.5, .5)
 ran6$ptimer <- ifelse(ran6$presentation_time == "1700", -.5, .5)
+ran6$logrt <- log(ran6$rt)
+
+```
+#Ran6 Models using logRT
+
+```{r}
+ran6mod1 <- lmer(logrt ~ congr*ptimer + (1 | subject), data = ran6)
+summary(ran6mod1)
+confint(ran6mod1, oldNames = FALSE)
+
+# Bayesian model
+ran6mod1b <- brm(rt ~ congr*ptimer + (1 | subject), data = ran6, 
+                 cores = 4, chains = 4)
+summary(ran6mod1b)
+WAIC(ran6mod1b)
 
 
-## random intercept only
+## random slopes
 # MLE model
+ran6mod2 <- lmer(logrt ~ congr*ptimer + (1 + congr | subject), data = ran6)
+summary(ran6mod2)
+
+anova(ran6mod1, ran6mod2)
+
+#Get Ranefs for congr
+#Add ID Column
+#Order by Ranef Size
+ran6mod2.ranef<-ranef(ran6mod2)$subject
+ran6mod2.ranef$subject <- as.numeric(row.names(ran6mod2.ranef))
+ran6mod2.ranef$congr <- ran6mod2.ranef$congr -0.022654
+ordran6mod2.ranef <- ran6mod2.ranef[order(ran6mod2.ranef$congr), ]
+
+#Add Predicted Values to ranface
+ran6$pred <- predict(ran6mod2)
+
+#Order ranface by Participant, Face-orientation, predicted value
+ordran6 <- ran6[order(ran6$subject, 
+                            ran6$congr, ran6$pred), ]
+
+
+#Panel plots ordered by size of random effect
+windows()
+pdf("ran6-log-fitted-panels.pdf", width = 10, height = 8)
+par(mfrow=c(3,7))
+for (i in ordran6mod2.ranef$subject) {
+  plot(jitter(ordran6$congr[ordran6$subject==i], .35), 
+       jitter(ordran6$logrt[ordran6$subject==i], .15),
+       ylab="RT", xlab="Congruence",
+       type="p", pch=1, col="blue", ylim=c(6.0, 7.0), xlim=c(-0.55, .55),
+       main=paste(round(ordran6mod2.ranef$congr[ordran6mod2.ranef$subject==i], digits=2), sep = " "))
+  lines(ordran6$congr[ordran6$subject==i], 
+  ordran6$pred[ordran6$subject==i], lwd=5, col="red")
+}
+dev.off()
+
+quantile(ran6mod2.ranef$congr, probs=c(.025, .5, .975))
+pdf("random_ran6_log_dotplot.pdf", width = 8, height = 3.0) 
+stripchart(ran6mod2.ranef$congr, pch=1, bg="skyblue", cex=3, lwd=2,
+           xlim=c(-.027, -0), xlab="Heterogeneity in Congruency Effect (log RT units)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-0.02612950, -0.02274863, -0.01965485), col = c("red", "black", "red"),
+       lwd = 3)
+dev.off()
+
+anova(ran6mod1, ran6mod2)
+
+```
+
+# MLE model: Raw Reaction Time
+## random intercept only
+```{r}
 ran6mod1 <- lmer(rt ~ congr*ptimer + (1 | subject), data = ran6)
 summary(ran6mod1)
 confint(ran6mod1, oldNames = FALSE)
 
 
-
 # Bayesian model
 ran6mod1b <- brm(rt ~ congr*ptimer + (1 | subject), data = ran6, 
-                 cores = 1, chains = 1)
+                 cores = 4, chains = 4)
 summary(ran6mod1b)
 WAIC(ran6mod1b)
 
@@ -55,6 +121,40 @@ WAIC(ran6mod1b)
 ran6mod2 <- lmer(rt ~ congr*ptimer + (1 + congr | subject), data = ran6)
 summary(ran6mod2)
 confint(ran6mod2, oldNames = FALSE)
+
+anova(ran6mod1, ran6mod2)
+
+#Get Ranefs for congr
+#Add ID Column
+#Order by Ranef Size
+ran6mod2.ranef<-ranef(ran6mod2)$subject
+ran6mod2.ranef$subject <- as.numeric(row.names(ran6mod2.ranef))
+ran6mod2.ranef$congr <- ran6mod2.ranef$congr -15.36
+ordran6mod2.ranef <- ran6mod2.ranef[order(ran6mod2.ranef$congr), ]
+
+#Add Predicted Values to ranface
+ran6$pred <- predict(ran6mod2)
+
+#Order ranface by Participant, Face-orientation, predicted value
+ordran6 <- ran6[order(ran6$subject, 
+                            ran6$congr, ran6$pred), ]
+
+#Panel plots ordered by size of fo1 random effect
+windows()
+pdf("ran6-fitted-panels.pdf", width = 10, height = 8)
+par(mfrow=c(3,7))
+for (i in ordran6mod2.ranef$subject) {
+  plot(jitter(ordran6$congr[ordran6$subject==i], .25), 
+       ordran6$rt[ordran6$subject==i],
+       ylab="RT", xlab="Congruence",
+       type="p", pch=19, col="blue", ylim=c(200, 1100), xlim=c(-0.5, .5),
+       main=paste(round(ordran6mod2.ranef$congr[ordran6mod2.ranef$subject==i], digits=3), sep = " "))
+  lines(ordran6$congr[ordran6$subject==i], 
+  ordran6$pred[ordran6$subject==i], lwd=5, col="red")
+}
+dev.off()
+
+
 
 # Bayesian model
 ran6mod2b <- brm(rt ~ congr*ptimer + (1 + congr | subject), data = ran6,
@@ -74,12 +174,24 @@ summary(ran6mod2)
 ran6mod2ranef <- -15.358 + ranef(ran6mod2)$subject[2]
 quantile(ran6mod2ranef$congr, probs=c(.025, .5, .975))
 
-#pdf("random_ran6_dotplot.pdf", width = 16, height = 8) 
+pdf("random_ran6_dotplot.pdf", width = 16, height = 8) 
 stripchart(ran6mod2ranef, pch=21, bg="skyblue", cex=2, lwd=2,
-           xlim=c(-20, -9), xlab="Difference in Reaction Times between Congruent and Incongruent Conditions", cex.axis=1.5, cex.lab=1.5)
+           xlim=c(-19, -0), xlab="Difference in Reaction Times between Congruent and Incongruent Conditions", cex.axis=1.5, cex.lab=1.5)
 abline(v=c(-18.6, -15.14, -12.21), col = c("red", "black", "red"),
        lwd = 3)
-#dev.off()
+dev.off()
+
+# Study 6 Dotplot (Bayes model with random slopes)
+summary(ran6mod2b)
+ran6mod2branef <- -15.32 + ranef(ran6mod2b)$subject[, 2]
+quantile(ran6mod2branef, probs=c(.025, .5, .975))
+
+pdf("random_ran6_bayes_dotplot.pdf", width = 16, height = 8) 
+stripchart(ran6mod2branef, pch=21, bg="skyblue", cex=2, lwd=2,
+           xlim=c(-19, -0), xlab="Difference in Reaction Times between Congruent and Incongruent Conditions", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-17.6, -15.5, -13.4), col = c("red", "black", "red"),
+       lwd = 3)
+dev.off()
 
 ```
 
@@ -267,7 +379,7 @@ plot(modelslopeb, pars = NA, parameters = NA, combo = c("dens",
 ```
 
 
-# With Math Variables Predicting Random Effects (updated 170316 KZ)
+## With Math Variables Predicting Random Effects (updated 17-03-16 KZ)
 ```{r}
 
 setwd("~/KZNB")
@@ -349,9 +461,7 @@ mathvarsmod <- lm(congr ~ math_anxiety, data = s7math2)
 summary(mathvarsmod)
 ```
 
-
-### With More Data from Ran
-## With the face orientation dataset
+## Ranface: Facial Recognition Speed = f(Face Orientation)
 ```{r}
 setwd("~/KZNB/Ran Data")
 
@@ -397,16 +507,90 @@ for (i in ordranfacem1.ranef$Participant) {
   plot(jitter(ordranfacefo1$fo1[ordranfacefo1$Participant==i], .2), 
        ordranfacefo1$RT[ordranfacefo1$Participant==i],
        ylab="RT (ms)", xlab="Upright",
-       type="p", pch=19, col="blue", ylim=c(.2, 8), xlim=c(0, 1),
+       type="p", pch=19, col="blue", ylim=c(.2, 7), xlim=c(0, 1),
        main=paste(round(ordranfacem1.ranef$fo1[ordranfacem1.ranef$Participant==i], digits=2), sep = " "))
   lines(ordranfacefo1$fo1[ordranfacefo1$Participant==i], 
   ordranfacefo1$pred[ordranfacefo1$Participant==i], lwd=2, col="red")
 }
 dev.off()
 ```
+## Ranface: Face Orientation: Upright v. Upside-Down
+```{r}
+setwd("~/KZNB/Ran Data")
 
+ranface <- read.csv("experiment7_facesorient.csv")
 
-# Bayesian Estimation of Face-Orientation Data
+ranface$fo1 <- ifelse(ranface$Face_orientation == 1, 1, 0)
+ranface$fo2 <- ifelse(ranface$Face_orientation == 2, 1, 0)
+ranface$trial.r <- ranface$trial -1
+ranface$logRT <- log(ranface$RT)
+
+library(e1071)
+skewness(ranfacefo1$RT)
+
+#Select Upright and Upside-Down Conditions Only
+ranfacefo1 <-ranface[ranface$Face_orientation!=2, ]
+
+write.csv(x = ranfacefo1, file = "ranfacefo1.csv", row.names=F)
+
+library(lme4)
+library(lmerTest)
+library(nlme)
+
+#Run Upright-Upsidedown Model
+
+ranfacem1 <- lmer(logRT ~ fo1 + (fo1 | Participant), data = ranfacefo1)
+summary(ranfacem1)
+confint(ranfacem1)
+
+#Run Model with Random Intercept Only
+ranfacem0 <- lmer(logRT ~ fo1 + (1 | Participant), data = ranfacefo1)
+summary(ranfacem0)
+anova(ranfacem1, ranfacem0)
+
+#Get Ranefs for f01
+#Add ID Column
+#Order by Ranef Size
+ranfacem1.ranef<-ranef(ranfacem1)$Participant
+ranfacem1.ranef$Participant <- as.numeric(row.names(ranfacem1.ranef))
+ranfacem1.ranef$fo1 <- ranfacem1.ranef$fo1 -0.20156
+ordranfacem1.ranef <- ranfacem1.ranef[order(ranfacem1.ranef$fo1), ]
+
+#Add Predicted Values to ranface
+ranfacefo1$pred <- fitted(ranfacem1)
+
+#Order ranface by Participant, Face-orientation, predicted value
+ordranfacefo1 <- ranfacefo1[order(ranfacefo1$Participant, 
+                            ranfacefo1$Face_orientation, ranfacefo1$pred), ]
+
+#Dotplot
+
+windows()
+pdf("ranface-ranef-log-dotplot.pdf", width = 8, height = 3)
+stripchart(ranfacem1.ranef$fo1, pch=1, bg="skyblue", cex=3, lwd=2,
+           xlim=c(-0.45, .05), xlab="Heterogeneity in Face Orientation Effect (logRT units)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-0.36, -0.21, -.01), col = c("red", "black", "red"),
+       lwd = 3)
+dev.off()
+
+#Panel plots ordered by size of fo1 random effect
+
+windows(width = 10, height = 8)
+pdf("ranface-fitted-panels-log.pdf", width = 10, height = 8)
+par(mfrow=c(3,7))
+for (i in ordranfacem1.ranef$Participant) {
+  plot(jitter(ordranfacefo1$fo1[ordranfacefo1$Participant==i], .25), 
+       ordranfacefo1$logRT[ordranfacefo1$Participant==i],
+       ylab="logRT", xlab="Upright",
+       type="p", pch="O", col="blue", ylim=c(-.7, 2.3), xlim=c(0, 1),
+       main=paste(round(ordranfacem1.ranef$fo1[ordranfacem1.ranef$Participant==i], digits=2), sep = " "))
+  lines(ordranfacefo1$fo1[ordranfacefo1$Participant==i], 
+  ordranfacefo1$pred[ordranfacefo1$Participant==i], lwd=5, col="red")
+}
+dev.off()
+
+```
+### Bayesian Estimation of Face-Orientation Data
 ```{r}
 library(brms)
 ranfaceb1 <- brm(RT ~ fo1 + fo2 + (fo1 + fo2 | Participant), data = ranface,
@@ -443,16 +627,17 @@ ggsave(ranfaceplot, file = "ranfaceplot2.pdf")
 ranfacem1.re <- as.vector((ranfacem1.re))
 quantile(ranfacem1.re[,1], probs=c(.025, .5, .975))
 
-#pdf("random_face_dotplot.pdf", width = 16, height = 8) 
-stripchart(ranfacem1.re, pch=21, bg="skyblue", cex=2, lwd=2,
+pdf("random_face_dotplot.pdf", width = 16, height = 8)
+windows()
+stripchart(ranfacem1.re, pch=21, bg="skyblue", cex=3, lwd=2,
            xlim=c(-1.2, .15), xlab="Individual Slopes in RT to Face Orientation", cex.axis=1.5, cex.lab=1.5)
 abline(v=c(-1.06, -0.5091, .01), col = c("red", "black", "red"),
        lwd = 3)
-#dev.off()
+dev.off()
 ```
 
 
-## With the emotion dataset
+## Ranem: Emotional Expression Dataset
 ```{r}
 setwd("~/KZNB/Ran Data")
 ranem <- read.csv("exp1_expressions.csv")
