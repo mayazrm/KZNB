@@ -1,0 +1,607 @@
+---
+title: "Heterogeneity Project - Analyses for Study 1A"
+output: html_notebook
+---
+
+---
+title: "Heterogeneity Project - Analyses for Study 1A"
+output: html_notebook
+---
+
+
+# Load Data and Packages
+```{r}
+setwd("~/KZNB")
+rnd <- read.csv("randomproject_data_aggregated_161021.csv")
+rndt <- rnd
+
+library(nlme)
+library(lme4)
+library(ggplot2)
+library(lmerTest)
+theme_set(theme_bw(base_size = 14))
+#For Bayesian analysis:
+library(brms)
+library(car)
+#For dotplots
+library(Rcmdr)
+
+```
+
+# Recoding Variables
+```{r}
+# so that one unit (-.5, .5) = duration of study
+rndt$trial40 <- (rndt$trials.thisN + 1) 
+rndt$trial40c <- (rndt$trial40 - 20)/40
+
+rndt$rt <- rndt$response.rt
+#rndt$logrt <- log(rndt$response.rt)
+
+rndt$id <- rndt$ID
+
+rndt$valenceE <-recode(rndt$valence, as.factor.result=F, '"negative" = -0.5; "positive" = 0.5')
+
+rndt$rtms <- rndt$rt*1000
+rndt$logrt <- log(rndt$rtms)
+
+```
+
+# Subsetting to look only at trials labeled as self-descriptive
+```{r}
+
+rndtb2 <- subset(rndt, response.keys == "up")
+
+
+```
+
+# Individual Plots
+```{r}
+selfrelplot <- ggplot(data=rndtb2, aes(x=valence, y=logrt)) +
+  geom_jitter(aes(color=as.factor(valence)), position = position_jitter(width = .2), size=1.5) +
+  labs(title = "Log RT by Valence - Self-Relevant Traits Only", x="id", y="Log RT") +
+  stat_summary(aes(group=valence), fun.y = mean, geom="point", colour="black", size=2) +
+  stat_summary(fun.data=mean_cl_boot, geom='errorbar', size = .5) +
+  scale_color_manual(values=c("orangered3", "green4")) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position='none',
+        plot.title = element_text(lineheight=.8, face="bold"),
+        axis.title.y = element_text(face="bold", vjust=0.5),
+        axis.title.x = element_text(face="bold", vjust=-0.35)) +
+  facet_wrap(~id) 
+selfrelplot
+#ggsave(selfrelplot, file = "selfrelplot_N62_170218.pdf", height = 40/2.54, width = 64/2.54)
+```
+
+
+# MLE Analyses 
+```{r}
+## Updates - Stricter Exclusion Cutoff 2 ######
+rndtb2 <- subset(rndt, response.keys == "up")
+rndtb <- subset(rndtb2, rt >= .01 & rt < 1.45) #90th percentile or below
+rndtb2$rt.z <- scale(rndtb2$rt)
+sort(rndtb2$rt.z)
+rndtz <- subset(rndtb2,  rt.z < 3) #within 3 SD of the mean RT
+
+#To get balanced version of data without selecting self relevant traits
+library(dplyr)
+dplyr::group_by(rndt, id)
+rndt %>% group_by(id) %>% summarise(avge = mean(logrt))
+#Create version where there are no missing data
+rndt2 <- rndt[!(rndt$id %in% c(201, 206, 207, 209, 212, 234, 235, 238, 239, 246, 248, 252, 262, 263, 265, 268, 302, 303)), ]
+rndt2 <- within(rndt2, {
+  idcat <- as.factor(id)
+  valcat<- as.factor(valenceE)
+  val2cat <- as.factor(valence2)
+})
+#Write dataset for use in SAS
+write.csv(rndt2, "rndt2.csv", row.names = F)
+
+#Try version of valenceE that is coded -1, +1
+rndt2$valence2 <- rndt2$valenceE*2
+summary(lmer(logrt ~ valence2 + (1 + valence2| id),  data=rndt2))
+summary(aov(logrt ~ valence2 + Error(idcat/valence2), data=rndt2))
+
+#Try version with valence at categorical
+summary(aov(logrt ~ valcat + Error(idcat/valcat), data=rndt2))
+summary(lmer(logrt ~ val2cat + (1 + val2cat| id),  data=rndt2))
+
+summary(lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndt2))
+summary(aov(logrt ~ valenceE + Error(idcat/valenceE), data=rndt2))
+#valence by subject Variance calc:
+(6.730/43 - 99.49/1672)/0.009701
+(6.730/43 - 99.49/1672)/20
+
+
+# within & between person centered valence
+
+# grand mean centered
+rndtz$valenceE.c <- center(rndtz$valenceE)
+
+rndtz<- within(rndtz, {valenceE.mean = ave(valenceE, id, FUN = mean)})
+rndtz$valenceE.wc <- rndtz$valenceE - rndtz$valenceE.mean
+rndtz$valenceE.bc <- rndtz$valenceE.c - rndtz$valenceE.wc
+
+
+# standard model -- Significant main effect of valence
+mle1a <- (lm(logrt~valenceE + trial40c, data = rndtz))
+summary(mle1a)
+mle1b <- (lm(rtms~valenceE + trial40c, data = rndtz)) #run on raw rt
+summary(mle1b)
+
+#random intercept model
+mle2aa <- (lmer(logrt ~ valenceE + (1 | id),  data=rndtzz))
+summary(mle2aa)
+mle2b <- (lmer(rtms ~ valenceE + trial40c + (1 | id),  data=rndtz))
+summary(mle2b)
+
+#random intercept & slope of valence; not that rndtzz is used
+#dataset with at least some observations on pos and neg.
+write.csv(rndtzz, "rndtzz.csv", row.names = F)
+
+mle3a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtzz))
+summary(mle3a)
+#Remove the temporal order predictor for compatibility with SPSS
+mle3aa <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtzz))
+summary(mle3aa)
+
+#Confint
+confmle3aa<-confint(mle3aa)
+
+exp(6.86471)
+exp(6.86471 -0.16219)
+exp(6.86471)- exp(6.86471 -0.16219)
+exp(c(-0.20647785, -0.1188546))
+
+
+
+mle3b <- lmer(rtms ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz)
+summary(mle3b)
+
+#Remove the temporal order predictor for compatibility with SPSS
+mle3bb <- lmer(rtms ~ valenceE + (1 + valenceE| id),  data=rndtz)
+summary(mle3bb)
+confint(mle3bb)
+
+
+#random intercept & slope of valence & random effects of time 
+mle4a <-(lmer(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) ,  data=rndtz))
+summary(mle4a)
+mle4b <-(lmer(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) ,  data=rndtz))
+summary(mle4b)
+
+#random intercept & slope of valence & random effects of time and word
+mle5a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) + (1 | word),  data=rndtz))
+summary(mle5a)
+
+cnf.fe.mle5a <- confint(mle5a, "theta_") #elements of lower triang RE cov mat
+cnf.fe.mle5a <- confint(mle5a, "beta-")  #FEs
+
+mle5b <- (lmer(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtz))
+summary(mle5b)
+
+```
+
+# MLE Dot Plot
+```{r}
+ranef.mle5b<- -174.426 + ranef(mle5b)$id[,2] #ValencE column
+
+quantile(ranef.mle5b, probs=c(.025, .975))
+
+stripchart(ranef.mle5b, pch=21, bg="red", cex=3.5, lwd=2,
+           xlim=c(-500, 150), xlab="Trait Valence Effect (in Milliseconds)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-408, -161, 32), col = c("red", "black", "red"),
+       lwd = 3)
+
+```
+
+# Bayesian Analyses 
+```{r}
+# standard model -- Significant main effect of valence
+bayes1a <- (brm(logrt~valenceE + trial40c, data = rndtz))
+summary(bayes1a)
+bayes1b <- (brm(rtms~valenceE + trial40c, data = rndtz)) #run on raw rt
+summary(bayes1b)
+
+#random intercept model
+bayes2a <- (brm(logrt ~ valenceE + trial40c + (1 | id),  data=rndtz))
+summary(bayes2a)
+bayes2b <- (brm(rtms ~ valenceE + trial40c + (1 | id),  data=rndtz))
+summary(bayes2b)
+
+
+#random intercept & slope of valence
+bayes3a <-(brm(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz))
+summary(bayes3a)
+bayes3b <-(brm(rtms ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtz))
+summary(bayes3b)
+
+
+#random intercept & slope of valence & random effects of time 
+bayes4a <- (brm(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) ,  data=rndtz))
+summary(bayes4a)
+bayes4b <- (brm(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) ,  data=rndtz))
+summary(bayes4b)
+
+
+#random intercept & slope of valence & random effects of time and word
+bayes5a <- (brm(logrt ~ valenceE + trial40c + (1 + valenceE + trial40c | id) + (1 | word),  data=rndtz))
+summary(bayes5a)
+
+bayes5b <- (brm(rtms ~ valenceE + trial40c + (1 + valenceE + trial40c| id) + (1 | word),  data=rndtz))
+summary(bayes5b)
+```
+
+# Bayesian Dotplot
+```{r}
+ranef.bayes5b <- -175.21 + ranef(bayes5b)$id[,2]
+
+stripchart(ranef.bayes5b, pch=21, bg="blue", cex=3.5, lwd=2,
+           xlim=c(-500, 150), xlab="Trait Valence Effect (in Milliseconds)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(quantile(ranef.bayes5b, probs=.025), quantile(ranef.bayes5b, probs=.5), quantile(ranef.bayes5b, probs=.975)), col = c("blue", "blue", "blue"),
+       lty = c("dashed", "solid", "dashed"), lwd = 4)
+
+```
+
+# Dotplot comparing MLE and Bayesian Results
+```{r}
+
+
+quantile(ranef.mle5b, probs=c(.025, .975))
+quantile(ranef.bayes5b, probs=c(.025, .975))
+
+x1 <- list("MLE"=ranef.mle5b, "Bayes"=ranef.bayes5b)
+
+stripchart(x1,
+ main="Multiple stripchart for comparision \n Gray = Mean and SDs, Colored Lines = Quantiles",
+ xlab="Random Effects of Valence on RT",
+ ylab="Method",
+ col=c("red","blue"),
+ pch=16,
+ cex = 2, 
+ cex.axis = 1.5, 
+ cex.lab = 1.5,
+ xlim=c(-500, 120)
+ )
+abline(v=c(quantile(ranef.mle5b, probs=.025), quantile(ranef.mle5b, probs=.5), quantile(ranef.mle5b, probs=.975)), col = c("darkred", "darkred", "darkred"),
+       lty = c("dashed", "solid", "dashed"), lwd = 4)
+
+abline(v=c(quantile(ranef.bayes5b, probs=.025), quantile(ranef.bayes5b, probs=.5), quantile(ranef.bayes5b, probs=.975)), col = c("darkblue", "darkblue", "darkblue"),
+       lty = c("dashed", "solid", "dashed"), lwd = 4)
+abline(v=c((-174.426-2*150.26), -174.426, (-174.426+2*150.26)), col = c("darkgray", "darkgray", "darkgray"),
+       lty = c("dashed", "solid", "dashed"), lwd = 4)
+
+```
+
+
+```{r}
+#Create factor version of id in aggfile
+aggs1aa <- within(aggs1aa, {
+  idcat <- as.factor(id)
+})
+
+write.csv(aggs1aa, "aggs1aa.csv", row.names = F)
+
+#Wide version of aggregated data
+tst<-subset(aggs1aa, valenceE==-.5)
+tst1<-subset(aggs1aa, valenceE==0.5)
+aggs1aawide <- data.frame(cbind(tst$id, tst$logrt, tst1$logrt))
+colnames(aggs1aawide) <- c("id", "rtneg", "rtpos")
+write.csv(aggs1aawide, "aggs1aawide.csv", row.names = F)
+
+#Create factor version of id in disagg file
+rndtzz <- within(rndtzz, {
+  idcat <- as.factor(id)
+})
+
+
+aggs1aa.out = aov(logrt ~ valenceE + idcat, data=aggs1aa)
+summary(aggs1aa.out)
+
+rms1a.out <- aov(logrt ~ valenceE + idcat + Error(idcat*valenceE), data=rndtzz)
+summary(rms1a.out)
+
+#Shows that you get identical results as aov() if you use
+#lm with dummy variables for person
+anova(lm(logrt ~ valenceE + idcat, data = aggs1aa))
+
+#Run interaction model
+anova(lm(logrt ~ valenceE + idcat, data = rndtzz))
+anova(lm(logrt ~ valenceE*idcat, data = rndtzz))
+
+#Find cases with only one observation on aggregated valenceE
+#by calculating the mean 
+library(dplyr)
+dplyr::group_by(aggs1a, valenceE)
+aggs1a %>% group_by(valenceE) %>% summarise(avge = mean(logrt))
+
+t.test(aggs1aa$logrt[aggs1aa$valenceE == -0.5], aggs1aa$logrt[aggs1aa$valenceE == 0.5], alternative='two.sided', conf.level=.95, paired=TRUE)
+
+#Calc variance of valence effect from repeated measures output
+(1.0586)/58 = 0.0183
+
+#Do version of mle analysis with subjects that have variance on valenceE. Look at the complexity of this statement:
+rndtzz<-rndtz[!(rndtz$id %in% c(250, 257, 272)), ]
+#Now rerun the analysis on those subejcts
+mle3aaa <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtzz))
+summary(mle3aaa)
+
+```
+
+
+```{r}
+### Creating Aggregated Version of Balanced Dataset (2 rows per person)
+
+temprnd<- within(rndt2, {val.meanlog = ave(logrt, valenceE, id, FUN = mean)})
+temprnd<- within(temprnd, {val.mean = ave(rtms, valenceE, id, FUN = mean)})
+
+temprndfile <- data.frame(temprnd$id, temprnd$valenceE, temprnd$val.mean, temprnd$val.meanlog)
+colnames(temprndfile) <- c("id", "valenceE", "val.mean", "val.meanlog")
+View(temprndfile)
+
+aggbalanced <- unique(temprndfile)
+
+colnames(aggbalanced) <- c("id", "valenceE", "rtms", "logrt")
+write.csv(aggbalanced, "aggbalanced.csv", row.names = F)
+
+#Load aggregate file.
+aggbalanced <- read.csv("aggbalanced.csv")
+aggbalanced <- within(aggbalanced, {
+  idcat <- as.factor(id)
+  valcat<- as.factor(valenceE)
+})
+
+#Runs comparing agg and nonagg for balanced dataset
+summary(lmer(logrt ~ valenceE + (1| idcat),  data=aggbalanced))
+summary(aov(logrt ~ valenceE*idcat + Error(valenceE*idcat), data=aggbalanced)) #Same estimates of valence plus error effects
+
+summary(lmer(logrt ~ valenceE + (1 + valenceE| idcat),  data=rndt2))
+summary(aov(logrt ~ valenceE + Error(idcat/valenceE), data=rndt2))
+
+summary(lmer(logrt ~ valence2 + (1 + valence2| idcat),  data=rndt2))
+
+summary(aov(logrt ~ valence2 + Error(idcat/valence2), data=rndt2))
+
+(0.1565116-0.05950359)/20 #Variance for valence coded -1, +1
+```
+
+
+
+
+## Code for computing individual difference variables
+```{r}
+setwd("~/KZNB")
+rndid <- read.csv("Heterogeneity_Project_Questionnaires.csv")
+rndid$ID <- rndid$subject
+
+# Mean centering function
+center <- function(x) {
+  scale(x, center=T, scale=F)
+}
+
+
+# Regulatory Mode:
+rndid$rmq2r <- 7-rndid$rmq2
+rndid$rmq10r <- 7-rndid$rmq10
+rndid$rmq27r <- 7-rndid$rmq27
+rndid$rmq13r <- 7-rndid$rmq13
+rndid$rmq24r <- 7-rndid$rmq24
+
+rndid$loc.matrix <- cbind(rndid$rmq1,rndid$rmq3, rndid$rmq4, rndid$rmq5, rndid$rmq8, rndid$rmq13r, rndid$rmq16, rndid$rmq21, rndid$rmq24r, rndid$rmq25, rndid$rmq28, rndid$rmq29)
+rndid$loc.v <- as.vector(rowMeans(rndid$loc.matrix, na.rm=T))
+rndid$loc.c <- scale (rndid$loc.v, center=T, scale=F)
+
+rndid$ass.matrix <- cbind(rndid$rmq2r, rndid$rmq6, rndid$rmq7, rndid$rmq9, rndid$rmq10r, rndid$rmq11, rndid$rmq15, rndid$rmq19, rndid$rmq20, rndid$rmq22, rndid$rmq27r, rndid$rmq30)
+rndid$ass.v <- as.vector(rowMeans(rndid$ass.matrix, na.rm =T))
+rndid$ass.c <- scale (rndid$ass.v, center=T, scale=F)
+
+rndid$rmpredom <- rndid$loc.v-rndid$ass.v
+rndid$rmpredomave <- (rndid$loc.v+rndid$ass.v)/2
+rndid$rmpredom.c <- center(rndid$rmpredom)
+rndid$rmpredomave.c <- center(rndid$rmpredomave )
+
+
+# Regulatory Focus
+rndid$rfq1r <- 6-rndid$rfq1
+rndid$rfq9r <- 6-rndid$rfq9
+rndid$rfq11r <- 6-rndid$rfq11
+rndid$rfq2r <- 6-rndid$rfq2
+rndid$rfq4r <- 6-rndid$rfq4
+rndid$rfq6r <- 6-rndid$rfq6
+rndid$rfq8r <- 6-rndid$rfq8
+
+rndid$prom.matrix <- cbind(rndid$rfq1r, rndid$rfq3, rndid$rndid$rfq7, rndid$rfq9r, rndid$rfq10, rndid$rfq11r)
+rndid$prom.v <- as.vector(rowMeans(rndid$prom.matrix, na.rm=T))
+rndid$prom.c <- scale(rndid$prom.v, center=T, scale=F)
+
+rndid$prev.matrix <- cbind(rndid$rfq2r, rndid$rfq4r, rndid$rfq5, rndid$rfq6r, rndid$rfq8r)
+rndid$prev.v <- as.vector(rowMeans(rndid$prev.matrix, na.rm=T))
+rndid$prev.c <- scale(rndid$prev.v, center=T, scale=F)
+
+rndid$rfpredom <- rndid$prom.v-rndid$prev.v
+rndid$rfpredomave <- (rndid$prom.v+rndid$prev.v)/2
+rndid$rfpredom.c <- center(rndid$rfpredom )
+rndid$rfpredomave.c <- center(rndid$rfpredomave)
+
+# Self-Esteem
+rndid$se2r <- 8-rndid$se2
+rndid$se5r <- 8-rndid$se5
+rndid$se6r <- 8-rndid$se6
+rndid$se8r <- 8-rndid$se8
+rndid$se9r <- 8-rndid$se9
+
+rndid$se.all <- cbind(rndid$se1, rndid$se2r, rndid$se3, rndid$se4, rndid$se5r, rndid$se6r, rndid$se7, rndid$se8r, rndid$se9r, rndid$se10) 
+rndid$se.v <- as.vector(rowMeans(rndid$se.all, na.rm=T))
+rndid$se.c <- scale(rndid$se.v, center=T, scale=F)
+```
+
+
+## Merging RT data with individual difference variables
+```{r}
+datamerge <- merge(rndid, rndtzz, by = "ID")
+
+#Make small version for SPSS
+keep <- c("id", "rtms", "valenceE", "prom.c", "prev.c")
+dmergsmall <- datamerge[keep]
+
+#Write a SPSS version of the dataset
+library(foreign)
+write.foreign(dmergsmall, "C:/Users/Niall/Documents/KZNB/dmergsmall.txt", "C:/Users/Niall/Documents/KZNB/dmergsmall.sps",   package="SPSS")
+
+
+```
+
+### Moderation by Regulatory Focus
+```{r}
+modindiv1 <- lmer(logrt ~ valenceE*prom.c*prev.c + trial40c  + (1 + valenceE| id),  data=datamerge)
+summary(modindiv1)
+# significant interaction of valence and promotion
+# marginally significant interaction of valence and prevention
+# SD of valence effects = .13
+library(effects)
+plot(effect(term="prom.c:valenceE",mod=modindiv1,default.levels=2),multiline=TRUE)
+plot(effect(term="prev.c:valenceE",mod=modindiv1,default.levels=2),multiline=TRUE)
+# Note: no moderation by promotion predominance, but there is a moderating effect of overall RF strength (average of promotion and prevention)
+
+
+## Creating Figures:
+
+prompos <- data.frame(prom.c = seq(min(datamerge$prom.c, na.rm=T), max(datamerge$prom.c, na.rm=T), .05),
+                     prev.c = 0, trial40c = 0, valenceE = .5)
+                       
+  
+mmprompos<-model.matrix(~valenceE*prom.c*prev.c + trial40c, prompos)
+
+prompos$rtpos <- predict(modindiv1, prompos, re.form=NA)
+#predict(m,newdat,re.form=NA) would give the same results
+pvarprompos<- diag(mmprompos %*% tcrossprod(vcov(modindiv1),mmprompos))
+prompos$rtlo <- prompos$rtpos-1.96*sqrt(pvarprompos)
+prompos$rthi <- prompos$rtpos+1.96*sqrt(pvarprompos)
+
+
+promneg <- data.frame(prom.c = seq(min(datamerge$prom.c, na.rm=T), max(datamerge$prom.c, na.rm=T), .05),
+                     prev.c = 0, trial40c = 0, valenceE = -.5)
+                       
+  
+mmpromneg<-model.matrix(~valenceE*prom.c*prev.c + trial40c, promneg)
+
+promneg$rtpos <- predict(modindiv1, promneg, re.form=NA)
+#predict(m,newdat,re.form=NA) would give the same results
+pvarpromneg<- diag(mmpromneg %*% tcrossprod(vcov(modindiv1),mmpromneg))
+promneg$rtlo <- promneg$rtpos-1.96*sqrt(pvarpromneg)
+promneg$rthi <- promneg$rtpos+1.96*sqrt(pvarpromneg)
+
+
+
+
+datamerge$valenceE_fac <- ifelse(datamerge$valenceE==.5, "pos", "neg")
+datamerge$valenceE_fac <- as.factor(datamerge$valenceE_fac)
+
+pdf("valenceXprom_figure.pdf", width = 9, height = 8) 
+plot(jitter(datamerge$prom.c), jitter(datamerge$logrt), pch = c("neg" = 1, "pos" = 19)[datamerge$valenceE_fac],
+     frame = F, ylim=c(5.8, 7.8), col = c("neg" = "gray30", "pos" = "darkgreen")[datamerge$valenceE_fac], cex  = .5, cex.lab = 1.3, cex.axis = 1.3,
+     xlim=c(-1.8, 1), xlab="Promotion Focus (mean centered)", 
+     ylab="Log RT")
+polygon(c(prompos$prom.c,rev(prompos$prom.c)),
+        c(prompos$rtlo,rev(prompos$rthi)),
+        col=rgb(.1, 0.8, 0.1, 0.1),
+        border = NA)
+polygon(c(promneg$prom.c,rev(promneg$prom.c)),
+        c(promneg$rtlo,rev(promneg$rthi)),
+        col=rgb(.1, 0.1, 0.1, 0.1),
+        border = NA)
+lines(prompos$prom.c, prompos$rtpos, lty=1, lwd=4, col = "darkgreen")
+lines(prompos$prom.c, prompos$rtlo, lty='solid', col = "darkgreen", lwd = .5)
+lines(prompos$prom.c, prompos$rthi, lty='solid', col = "darkgreen", lwd = .5)
+lines(promneg$prom.c, promneg$rtpos, lty='longdash', lwd=4, col = "gray30")
+lines(promneg$prom.c, promneg$rtlo, lty='longdash', col = "gray30", lwd = .5)
+lines(promneg$prom.c, promneg$rthi, lty='longdash', col = "gray30", lwd = .5)
+legend(-1.4,6, c("Negatively Valenced Words", "Positively Valenced Words"),
+       lty=c('longdash','solid'), # gives the legend appropriate symbols (lines)
+       lwd=c(2,2),col=c('gray30','darkgreen'),
+       pch = c(1, 19), cex = .8, pt.cex = 1)
+dev.off()
+
+
+```
+
+### Other Individual Difference Variables
+```{r}
+
+### Self-Esteem
+modindiv2 <- (lmer(rt ~ valenceE*se.c + trial40c + (1 + valenceE| id),  data=datamerge))
+summary(modindiv2)
+# SD of valence effect: .13
+plot(effect(term="valenceE:se.c",mod=modindiv2,default.levels=2),multiline=TRUE)
+
+### Regulatory Mode Predominance
+modindiv3 <- (lmer(rt ~ valenceE*rmpredom.c*rmpredomave.c + trial40c + (1 + valenceE| id),  data=datamerge))
+summary(modindiv3)
+# significant interaction of valence and locomotion predominance
+plot(effect(term="valenceE:rmpredom.c",mod=modindiv3,default.levels=2),multiline=TRUE)
+# Note: no moderation by locomotion or assessment when used as separate predictors
+
+
+modeleffect.re <- ranef(mle3b)
+res1<-data.frame(as.numeric(rownames(modeleffect.re$id)),modeleffect.re$id)
+colnames(res1)[1]="ID"
+res1$ID
+
+newd <- merge(res1, rndid, by = "ID")
+cor.test(newd$valenceE, newd$rmpredom.c) # significant correlation betw. RM predominance and valence random effects from original model
+
+cor.test(newd$valenceE, newd$prom.c) # significant correlation betw. promotion and valence random effects from original model
+plot(newd$prom.c, newd$valenceE)
+
+cor.test(newd$valenceE, newd$prev.c) # NS correlation betw. prevention and valence random effects from original model
+plot(newd$prev.c, newd$valenceE)
+
+cor.test(newd$valenceE, newd$se.c) # High significant correlation betw. self-esteem and valence random effects from original model
+
+```
+
+# Moderation Analyses with all words (both self-relevant and not self-relevant)
+```{r}
+
+rndt$selfrel <- ifelse(rndt$response.keys == "up", .5, -.5)
+rndtall <- subset(rndt, rt >= .01 & rt < 1.45) #90th percentile or below
+rndtall$rt.z <- scale(rndtall$rt)
+summary(rndtall$rt.z)
+
+datamergeall <- merge(rndid, rndtall, by = "ID")
+
+# without moderators
+modindivall <- (lmer(rt ~ valenceE + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall)
+
+modindivall1b <- (lmer(rt ~ valenceE*selfrel + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall1b)
+
+
+modindivall2 <- (lmer(rt ~ valenceE*rmpredom.c*rmpredomave.c + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall2 )
+# interaction of valence and rmpredom marginally significant
+
+modindivall2b <- (lmer(rt ~ valenceE*selfrel*rmpredom.c*rmpredomave.c + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall2b )
+
+
+modindivall3 <- (lmer(rt ~ valenceE*selfrel*prom.c*prev.c + trial40c + (1 + valenceE| id),  data=datamergeall))
+summary(modindivall3 )
+
+modeleffect.re2 <- ranef(modindivall)
+res2<-data.frame(as.numeric(rownames(modeleffect.re2$id)),modeleffect.re2$id)
+colnames(res2)[1]="ID"
+res2$ID
+
+newd2 <- merge(res2, rndid, by = "ID")
+cor.test(newd2$valenceE, newd2$rmpredom.c) # significant correlation betw. RM predominance and valence random effects from original model
+
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
