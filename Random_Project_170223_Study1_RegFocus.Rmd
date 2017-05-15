@@ -480,11 +480,10 @@ prompos$rtpos <- predict(modindiv1, prompos, re.form=NA)
 #predict(m,newdat,re.form=NA) would give the same results
 pvarprompos<- diag(mmprompos %*% tcrossprod(vcov(modindiv1),mmprompos))
 prompos$rtlo <- prompos$rtpos-1.96*sqrt(pvarprompos)
-prompos$rthi <- prompos$rtpos+1.96*sqrt(pvarprompos)
+prompos$rthi <- prompos$rtpos+ 1.96*sqrt(pvarprompos)
 
 
-promneg <- data.frame(prom.c = seq(min(datamerge$prom.c, na.rm=T), max(datamerge$prom.c, na.rm=T), .05),
-                     prev.c = 0, trial40c = 0, valenceE = -.5)
+promneg <- data.frame(prom.c = seq(min(datamerge$prom.c, na.rm=T), max(datamerge$prom.c, na.rm=T), .05), prev.c = 0, trial40c = 0, valenceE = -.5)
                        
   
 mmpromneg<-model.matrix(~valenceE*prom.c*prev.c + trial40c, promneg)
