@@ -455,6 +455,8 @@ dmergsmall <- datamerge[keep]
 library(foreign)
 write.foreign(dmergsmall, "C:/Users/Niall/Documents/KZNB/dmergsmall.txt", "C:/Users/Niall/Documents/KZNB/dmergsmall.sps",   package="SPSS")
 
+#Write full datamerge dataset as csv file
+write.csv(datamerge, "datamerge.csv", row.names = F)
 
 ```
 
