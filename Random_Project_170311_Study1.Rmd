@@ -2,10 +2,9 @@
 title: "Heterogeneity Project - Analyses for Study 1A"
 output: html_notebook
 ---
-
+```{r}
 
 # Load Data and Packages
-```{r}
 setwd("~/KZNB")
 rnd <- read.csv("randomproject_data_aggregated_161021.csv")
 rndt <- rnd
@@ -165,6 +164,7 @@ write.csv(rndtzz, "rndtzz.csv", row.names = F)
 
 mle3a <- (lmer(logrt ~ valenceE + trial40c + (1 + valenceE| id),  data=rndtzz))
 summary(mle3a)
+
 #Remove the temporal order predictor for compatibility with SPSS
 mle3aa <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtzz))
 summary(mle3aa)
@@ -172,10 +172,27 @@ summary(mle3aa)
 #Confint
 confmle3aa<-confint(mle3aa)
 
-exp(6.86471)
-exp(6.86471 -0.16219)
-exp(6.86471)- exp(6.86471 -0.16219)
-exp(c(-0.20647785, -0.1188546))
+exp(6.86632)
+exp(6.86632 -.5*0.16157)
+exp(6.86632 + .5*0.16157)
+
+exp(6.86632 +.5*0.16157) - exp(6.86632 -.5*0.16157)
+
+# MLE Dot Plot for basic model with logRT
+
+ranef.mle3aa<- -0.16157 + ranef(mle3aa)$id[,2] #ValencE column
+
+quantile(ranef.mle3aa, probs=c(.025, .975))
+quantile(ranef.mle3aa, probs=c(0, 1))
+
+#Compute population prediction interval for valenceE #need to update
+c(-0.16157 - 2*0.125, -0.16157 + 2*0.125)
+
+stripchart(ranef.mle3aa, pch=21, bg="red", cex=3.5, lwd=2,
+           xlim=c(-.4, .0286), xlab="Trait Valence Effect (logRT units)", cex.axis=1.5, cex.lab=1.5)
+abline(v=c(-.332, -0.16157, .0068), col = c("red", "black", "red"),
+       lwd = 3)
+
 
 
 
@@ -198,7 +215,7 @@ quantile(ranef.mle3bb, probs=c(0, 1))
 c(-162 - 2*143, -162 + 2*143)
 #[1] -450,  120 (vs -380, 20) #Considerably wider
 
-stripchart(ranef.mle3bb, pch=21, bg="red", cex=3.5, lwd=2,
+stripchart(ranef.mle3aa, pch=21, bg="red", cex=3.5, lwd=2,
            xlim=c(-450, 50), xlab="Trait Valence Effect (in Milliseconds)", cex.axis=1.5, cex.lab=1.5)
 abline(v=c(-382, -162.01, 16.9), col = c("red", "black", "red"),
        lwd = 3)

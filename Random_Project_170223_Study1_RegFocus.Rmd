@@ -448,7 +448,7 @@ rndid$se.c <- scale(rndid$se.v, center=T, scale=F)
 datamerge <- merge(rndid, rndtzz, by = "ID")
 
 #Make small version for SPSS
-keep <- c("id", "rtms", "valenceE", "prom.c", "prev.c")
+keep <- c("id", "rtms", "logrt", "valenceE", "prom.c", "prev.c")
 dmergsmall <- datamerge[keep]
 
 #Write a SPSS version of the dataset
@@ -460,7 +460,7 @@ write.foreign(dmergsmall, "C:/Users/Niall/Documents/KZNB/dmergsmall.txt", "C:/Us
 
 ### Moderation by Regulatory Focus
 ```{r}
-modindiv1 <- lmer(logrt ~ valenceE*prom.c*prev.c + trial40c  + (1 + valenceE| id),  data=datamerge)
+modindiv1 <- lmer(logrt ~ valenceE*prom.c*prev.c + (1 + valenceE| id),  data=datamerge)
 summary(modindiv1)
 # significant interaction of valence and promotion
 # marginally significant interaction of valence and prevention

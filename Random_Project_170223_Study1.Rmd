@@ -341,7 +341,7 @@ write.foreign(dmergsmall, "C:/Users/Niall/Documents/KZNB/dmergsmall.txt", "C:/Us
 
 ### Moderation by Regulatory Focus
 ```{r}
-modindiv1 <- (lmer(rtms ~ prom.c*prev.c*valenceE + trial40c + (1 + valenceE| id),  data=datamerge))
+modindiv1 <- (lmer(logrt ~ prom.c*prev.c*valenceE + trial40c + (1 + valenceE| id),  data=datamerge))
 summary(modindiv1)
 # significant interaction of valence and promotion
 # marginally significant interaction of valence and prevention

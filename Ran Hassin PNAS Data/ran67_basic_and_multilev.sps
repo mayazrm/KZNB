@@ -42,16 +42,18 @@ GET DATA  /TYPE=TXT
   rt A4
   OT F11.9
   subjective.0.is.unaware F1.0
-  presentaition_time F4.0
+  presentation_time F4.0
   addition.place F1.0
   counter.balance F1.0
   exclude_from_analysis A5.
 CACHE.
 EXECUTE.
-DATASET NAME DataSet2 WINDOW=FRONT.
+DATASET NAME DataSet1 WINDOW=FRONT.
 
-DATASET ACTIVATE DataSet2.
+*May 11, 2017 run: use logrt.
+DATASET ACTIVATE DataSet1.
 USE ALL.
+COMPUTE logrt = ln(rt).
 COMPUTE filter_$=(exclude_from_analysis = 'FALSE' & operand = 'S').
 VARIABLE LABELS filter_$ "exclude_from_analysis = 'FALSE' & operand = 'S' (FILTER)".
 VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.
@@ -59,23 +61,72 @@ FORMATS filter_$ (f1.0).
 FILTER BY filter_$.
 EXECUTE.
 
+*Exp6: Model with logrt = f(congrue).
+*Random intercept only.
+DATASET ACTIVATE DataSet1.
+MIXED logrt  WITH congruec ptimec
+  /FIXED=congruec ptimec congruec*ptimec | SSTYPE(3)
+  /METHOD=REML
+  /PRINT=DESCRIPTIVES G  SOLUTION TESTCOV
+ /RANDOM=INTERCEPT | SUBJECT(subject) COVTYPE(UN).
+
+*Exp6: Model with logrt = f(congrue).
+*Random slope.
+DATASET ACTIVATE DataSet1.
+MIXED logrt  WITH congruec ptimec
+  /FIXED=congruec ptimec congruec*ptimec | SSTYPE(3)
+  /METHOD=REML
+  /PRINT=DESCRIPTIVES G  SOLUTION TESTCOV
+ /RANDOM=INTERCEPT congruec | SUBJECT(subject) COVTYPE(UN).
+
+
+*Exp6: Model with rt = f(congrue).
+*Random intercept only.
+DATASET ACTIVATE DataSet1.
+MIXED rt  WITH congruec ptimec
+  /CRITERIA=CIN(95) MXITER(1000) MXSTEP(100) SCORING(1) SINGULAR(0.000000000001) HCONVERGE(0, 
+    ABSOLUTE) LCONVERGE(0, ABSOLUTE) PCONVERGE(0.000001, ABSOLUTE)
+  /FIXED=congruec ptimec congruec*ptimec | SSTYPE(3)
+  /METHOD=REML
+  /PRINT=DESCRIPTIVES G  SOLUTION TESTCOV
+ /RANDOM=INTERCEPT | SUBJECT(subject) COVTYPE(UN).
+
+*Exp6: Model with rt = f(congrue).
+*Random slope.
+DATASET ACTIVATE DataSet1.
+MIXED rt  WITH congruec ptimec
+  /FIXED=congruec ptimec congruec*ptimec | SSTYPE(3)
+  /METHOD=REML
+  /PRINT=DESCRIPTIVES G  SOLUTION TESTCOV
+ /RANDOM=INTERCEPT congruec | SUBJECT(subject) COVTYPE(UN).
+
+
 *Exp6: Model with rt = f(congrue).
 *Note: these analyses are a mess. It is impossible to get a reasonable model to converge.
-DATASET ACTIVATE DataSet1.
+DATASET ACTIVATE DataSet2.
 MIXED rt BY congruent presentation_time
-  /CRITERIA=CIN(95) MXITER(100) MXSTEP(10) SCORING(1) SINGULAR(0.000000000001) HCONVERGE(0, 
+  /CRITERIA=CIN(95) MXITER(1000) MXSTEP(100) SCORING(1) SINGULAR(0.000000000001) HCONVERGE(0, 
     ABSOLUTE) LCONVERGE(0, ABSOLUTE) PCONVERGE(0.000001, ABSOLUTE)
   /FIXED=congruent presentation_time congruent*presentation_time | SSTYPE(3)
   /METHOD=REML
   /PRINT=DESCRIPTIVES G  SOLUTION TESTCOV
  /RANDOM=INTERCEPT congruent | SUBJECT(subject) COVTYPE(UN).
 
+*Try covariate vs. factor.
+DATASET ACTIVATE DataSet1.
+MIXED rt WITH congruec ptimec
+  /CRITERIA=CIN(95) MXITER(1000) MXSTEP(100) SCORING(1) SINGULAR(0.000000000001) HCONVERGE(0, 
+    ABSOLUTE) LCONVERGE(0, ABSOLUTE) PCONVERGE(0.000001, ABSOLUTE)
+  /FIXED=congruec ptimec congruec*ptimec | SSTYPE(3)
+  /METHOD=REML
+  /PRINT=DESCRIPTIVES G  SOLUTION TESTCOV
+ /RANDOM=INTERCEPT congruec | SUBJECT(subject) COVTYPE(VC).
+* /SAVE = FIXPRED(fixed) PRED(blup).
+
  *Try random stimulus.
 *Exp6: Model with rt = f(congrue, stimulus).
 DATASET ACTIVATE DataSet1.
 MIXED rt BY congruent presentation_time
-  /CRITERIA=CIN(95) MXITER(100) MXSTEP(10) SCORING(1) SINGULAR(0.000000000001) HCONVERGE(0, 
-    ABSOLUTE) LCONVERGE(0, ABSOLUTE) PCONVERGE(0.000001, ABSOLUTE)
   /FIXED=congruent presentation_time congruent*presentation_time | SSTYPE(3)
   /METHOD=REML
   /PRINT=DESCRIPTIVES G  SOLUTION TESTCOV
@@ -83,6 +134,8 @@ MIXED rt BY congruent presentation_time
   /RANDOM=INTERCEPT congruent | SUBJECT(prim) COVTYPE(UN).
 
 
+ * /CRITERIA=CIN(95) MXITER(100) MXSTEP(10) SCORING(1) SINGULAR(0.000000000001) HCONVERGE(0, 
+    ABSOLUTE) LCONVERGE(0, ABSOLUTE) PCONVERGE(0.000001, ABSOLUTE).
 
  
 

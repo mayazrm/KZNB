@@ -47,10 +47,10 @@ CACHE.
 EXECUTE.
 DATASET NAME DataSet2 WINDOW=FRONT.
 
+*Minimal model for valence effect using rndtzz dataset.
+*Without temporal ordering.
+*random intercept only.
 
-
-#Minimal model for valence effect using rndtzz dataset.
-#First without temporal ordering.
 MIXED logrt WITH valenceE 
   /FIXED=valenceE | SSTYPE(3)
   /METHOD=REML
@@ -60,21 +60,21 @@ MIXED logrt WITH valenceE
   /SAVE = FIXPRED(fixed) PRED(blup).
  * /REPEATED=time | SUBJECT(id) COVTYPE(AR1).
 
-*Model with no random slope;
 MIXED logrt WITH valenceE 
   /FIXED=valenceE | SSTYPE(3)
   /METHOD=REML
   /PRINT=G  SOLUTION TESTCOV
-  /RANDOM=INTERCEPT valenceE | SUBJECT(id) COVTYPE(UN)
+  /RANDOM=INTERCEPT valenceE | SUBJECT(id) COVTYPE(UN).
+
   /SAVE = FIXPRED(fixed) PRED(blup).
-
-
-MIXED logrt WITH valenceE trial40c
-  /FIXED=valenceE trial40c | SSTYPE(3)
+ 
+*With temporal ordering.
+MIXED logrt WITH valenceE trial40
+  /FIXED=valenceE trial40 | SSTYPE(3)
   /METHOD=REML
   /PRINT=G  SOLUTION TESTCOV
-  /RANDOM=INTERCEPT valenceE | SUBJECT(id) COVTYPE(UN).
- * /REPEATED=time | SUBJECT(id) COVTYPE(AR1).
+  /RANDOM=INTERCEPT valenceE | SUBJECT(id) COVTYPE(UN)
+  /REPEATED=trial40 | SUBJECT(id) COVTYPE(AR1).
 
 #MODEL USING ML TO COMPARE WITH MPLUS;
 
