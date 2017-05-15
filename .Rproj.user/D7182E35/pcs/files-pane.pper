@@ -1,17 +1,17 @@
 {
-    "path" : "~/KZNB/Ran Data",
+    "path" : "~/KZNB",
     "sortOrder" : [
         {
             "ascending" : false,
             "columnIndex" : 4
         },
         {
-            "ascending" : false,
-            "columnIndex" : 3
-        },
-        {
             "ascending" : true,
             "columnIndex" : 2
+        },
+        {
+            "ascending" : false,
+            "columnIndex" : 3
         }
     ]
 }
