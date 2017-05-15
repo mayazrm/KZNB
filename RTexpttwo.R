@@ -18,8 +18,9 @@ summary(RTexpttwo$rt)
 RTexpttwo<-RTsmall[order(RTexpttwo$subj),]
 subj<-unique(RTexpttwo$subj)
 
-#Not sure this is the version I need; there is not RTsmall1
-#load("C:/Users/Niall/Dropbox/NIALL1/MET/Analysis of Change Course/Spring 2013/Labs/RT.RData")
+#Write dataset as CSV file.
+write.csv(RTexpttwo, file = "RTexpttwo.csv")
+
 
 library(nlme)
 #Run mixed effects model with AR(1) errors: Raw Reaction Times

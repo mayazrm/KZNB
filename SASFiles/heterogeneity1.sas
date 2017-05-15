@@ -127,6 +127,7 @@ run;
 
 
 *Runs for Heterogeneity Paper;
+*Note: totalrt.R take the results of these analyses and creates plots;
 *Look at Trait codes;
 proc freq data=sesp2015.rtexpt;
 tables trial
