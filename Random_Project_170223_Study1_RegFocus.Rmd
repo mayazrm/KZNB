@@ -35,7 +35,6 @@ rndt$trial40 <- (rndt$trials.thisN + 1)
 rndt$trial40c <- (rndt$trial40 - 20)/40
 
 rndt$rt <- rndt$response.rt
-#rndt$logrt <- log(rndt$response.rt)
 
 rndt$id <- rndt$ID
 
@@ -79,7 +78,6 @@ selfrelplot
 # MLE Analyses 
 ```{r}
 ## Updates - Stricter Exclusion Cutoff 2 ######
-rndtb2 <- subset(rndt, response.keys == "up")
 rndtb <- subset(rndtb2, rt >= .01 & rt < 1.45) #90th percentile or below
 rndtb2$rt.z <- scale(rndtb2$rt)
 sort(rndtb2$rt.z)
@@ -321,12 +319,19 @@ t.test(aggs1aa$logrt[aggs1aa$valenceE == -0.5], aggs1aa$logrt[aggs1aa$valenceE =
 
 #Calc variance of valence effect from repeated measures output
 (1.0586)/58 = 0.0183
+```
+
+```{r rndtzz}
 
 #Do version of mle analysis with subjects that have variance on valenceE. Look at the complexity of this statement:
 rndtzz<-rndtz[!(rndtz$id %in% c(250, 257, 272)), ]
 #Now rerun the analysis on those subejcts
 mle3aaa <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtzz))
 summary(mle3aaa)
+
+
+mle3aaa_orig <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtz))
+summary(mle3aaa_orig)
 
 ```
 
@@ -460,13 +465,10 @@ summary(modindiv1)
 # significant interaction of valence and promotion
 # marginally significant interaction of valence and prevention
 # SD of valence effects = .13
-library(effects)
-plot(effect(term="prom.c:valenceE",mod=modindiv1,default.levels=2),multiline=TRUE)
-plot(effect(term="prev.c:valenceE",mod=modindiv1,default.levels=2),multiline=TRUE)
 # Note: no moderation by promotion predominance, but there is a moderating effect of overall RF strength (average of promotion and prevention)
 
 
-## Creating Figures:
+## Promotion x Valence Figure:
 
 prompos <- data.frame(prom.c = seq(min(datamerge$prom.c, na.rm=T), max(datamerge$prom.c, na.rm=T), .05),
                      prev.c = 0, trial40c = 0, valenceE = .5)
@@ -499,10 +501,9 @@ promneg$rthi <- promneg$rtpos+1.96*sqrt(pvarpromneg)
 datamerge$valenceE_fac <- ifelse(datamerge$valenceE==.5, "pos", "neg")
 datamerge$valenceE_fac <- as.factor(datamerge$valenceE_fac)
 
-pdf("valenceXprom_figure.pdf", width = 9, height = 8) 
-plot(jitter(datamerge$prom.c), jitter(datamerge$logrt), pch = c("neg" = 1, "pos" = 19)[datamerge$valenceE_fac],
-     frame = F, ylim=c(5.8, 7.8), col = c("neg" = "gray30", "pos" = "darkgreen")[datamerge$valenceE_fac], cex  = .5, cex.lab = 1.3, cex.axis = 1.3,
-     xlim=c(-1.8, 1), xlab="Promotion Focus (mean centered)", 
+pdf("valenceXprom_figure.pdf", width = 10, height = 10) 
+plot(jitter(datamerge$prom.c), jitter(datamerge$logrt), pch = c("neg" = 1, "pos" = 19)[datamerge$valenceE_fac], frame = F, ylim=c(5.9, 7.7), col = c("neg" = "gray30", "pos" = "darkgreen")[datamerge$valenceE_fac], cex  = .5, cex.lab = 1.5, cex.axis = 1.3,
+     xlim=c(-2.15, 1.1), xlab="Promotion Focus (mean centered)", 
      ylab="Log RT")
 polygon(c(prompos$prom.c,rev(prompos$prom.c)),
         c(prompos$rtlo,rev(prompos$rthi)),
@@ -518,12 +519,66 @@ lines(prompos$prom.c, prompos$rthi, lty='solid', col = "darkgreen", lwd = .5)
 lines(promneg$prom.c, promneg$rtpos, lty='longdash', lwd=4, col = "gray30")
 lines(promneg$prom.c, promneg$rtlo, lty='longdash', col = "gray30", lwd = .5)
 lines(promneg$prom.c, promneg$rthi, lty='longdash', col = "gray30", lwd = .5)
-legend(-1.4,6, c("Negatively Valenced Words", "Positively Valenced Words"),
+legend(-2,6.15, c("Negatively Valenced Words", "Positively Valenced Words"),
        lty=c('longdash','solid'), # gives the legend appropriate symbols (lines)
        lwd=c(2,2),col=c('gray30','darkgreen'),
-       pch = c(1, 19), cex = .8, pt.cex = 1)
+       pch = c(1, 19), cex = 1.3, pt.cex = 1)
 dev.off()
 
+
+
+## Prevention x Valence Figure:
+
+prevpos <- data.frame(prev.c = seq(min(datamerge$prev.c, na.rm=T), max(datamerge$prev.c, na.rm=T), .05),
+                     prom.c = 0, trial40c = 0, valenceE = .5)
+                       
+  
+mmprevpos<-model.matrix(~valenceE*prom.c*prev.c + trial40c, prevpos)
+
+prevpos$rtpos <- predict(modindiv1, prevpos, re.form=NA)
+#predict(m,newdat,re.form=NA) would give the same results
+pvarprevpos<- diag(mmprevpos %*% tcrossprod(vcov(modindiv1),mmprevpos))
+prevpos$rtlo <- prevpos$rtpos-1.96*sqrt(pvarprevpos)
+prevpos$rthi <- prevpos$rtpos+1.96*sqrt(pvarprevpos)
+
+
+prevneg <- data.frame(prev.c = seq(min(datamerge$prev.c, na.rm=T), max(datamerge$prev.c, na.rm=T), .05),
+                     prom.c = 0, trial40c = 0, valenceE = -.5)
+                       
+  
+mmprevneg<-model.matrix(~valenceE*prom.c*prev.c + trial40c, prevneg)
+
+prevneg$rtpos <- predict(modindiv1, prevneg, re.form=NA)
+#predict(m,newdat,re.form=NA) would give the same results
+pvarprevneg<- diag(mmprevneg %*% tcrossprod(vcov(modindiv1),mmprevneg))
+prevneg$rtlo <- prevneg$rtpos-1.96*sqrt(pvarprevneg)
+prevneg$rthi <- prevneg$rtpos+1.96*sqrt(pvarprevneg)
+
+
+pdf("valenceXprev_figure.pdf", width = 10, height = 10) 
+plot(jitter(datamerge$prev.c), jitter(datamerge$logrt), pch = c("neg" = 1, "pos" = 19)[datamerge$valenceE_fac],
+     frame = F, ylim=c(5.9, 7.7), col = c("neg" = "gray30", "pos" = "darkred")[datamerge$valenceE_fac], cex  = .5, cex.lab = 1.5, cex.axis = 1.3,
+     xlim=c(-2.15, 1.1), xlab="Prevention Focus (mean centered)", 
+     ylab="Log RT")
+polygon(c(prevpos$prev.c,rev(prevpos$prev.c)),
+        c(prevpos$rtlo,rev(prevpos$rthi)),
+        col=rgb(.8, 0.1, 0.1, 0.1),
+        border = NA)
+polygon(c(prevneg$prev.c,rev(prevneg$prev.c)),
+        c(prevneg$rtlo,rev(prevneg$rthi)),
+        col=rgb(.1, 0.1, 0.1, 0.1),
+        border = NA)
+lines(prevpos$prev.c, prevpos$rtpos, lty=1, lwd=4, col = "darkred")
+lines(prevpos$prev.c, prevpos$rtlo, lty='solid', col = "darkred", lwd = .5)
+lines(prevpos$prev.c, prevpos$rthi, lty='solid', col = "darkred", lwd = .5)
+lines(prevneg$prev.c, prevneg$rtpos, lty='longdash', lwd=4, col = "gray30")
+lines(prevneg$prev.c, prevneg$rtlo, lty='longdash', col = "gray30", lwd = .5)
+lines(prevneg$prev.c, prevneg$rthi, lty='longdash', col = "gray30", lwd = .5)
+legend(-2,6.15, c("Negatively Valenced Words", "Positively Valenced Words"),
+       lty=c('longdash','solid'), # gives the legend appropriate symbols (lines)
+       lwd=c(2,2),col=c('gray30','darkred'),
+       pch = c(1, 19), cex = 1.3, pt.cex = 1)
+dev.off()
 
 ```
 
