@@ -68,6 +68,7 @@ model RT=val;
 by SubjectNumber;
 run;
 
+
 *2017-feb-26;
 *Runs to look at balanced dataset and get EMS;
 run;
@@ -143,12 +144,12 @@ proc mixed data=sesp2015.rtexpt covtest noclprint;
 class subj trait_vale time_e trl1;
 model rt_log = trait_vale time_e trait_vale*time_e/solution ddfm=contain;
 random  trait_vale/subject = subj type = un g gcorr;
-random trait_vale/subject = trl1(trait_vale); *a shot in the dark;
+random trait_vale/subject = trl1(trait_vale); *a shot in the dark;*should be intercept/subject = trl1;
 lsmeans trait_vale time_e trait_vale*time_e/cl;
 estimate "trait vale overall" trait_vale -1 1/ cl;
 run;
 
-*Go back to dataset with just time1;
+*Go back to dataset with just time2;
 libname suppes "C:\Users\Niall\Dropbox\NIALL1\MET\Suppes Talk";
 run;
 
@@ -167,7 +168,6 @@ run;
 
 
 *Need to run PROC MIXED for time=2 only;
-
 
 *+++++++++++++++++++++++++;
 *rm analysis of aggregated data; 
