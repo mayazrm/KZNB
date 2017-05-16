@@ -1,0 +1,71 @@
+
+setwd("~/Google Drive/Columbia/RESEARCH/CURRENT/Random Proj/KZNB/KZNB-master")
+
+rndtzz <- read.csv("rndtzz.csv")
+
+library(rmarkdown)
+library(nlme)
+library(lme4)
+library(ggplot2)
+library(lmerTest)
+#For Bayesian analysis:
+library(brms)
+library(car)
+#For dotplots
+library(Rcmdr)
+
+
+mle3aa <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtzz))
+summary(mle3aa)
+
+#Put the EBLUPs of the random effects into a separate dataset
+cfs1 <- (ranef(mle3aa))
+cfs2 <- as.data.frame(cbind(cfs1$id[,1], cfs1$id[,2]))
+cfs2$id <- rbind(201,202,204,205,206,207,208,209,210,212,219,220,221,222,223,224,226,228,229,232,
+           234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,251,252,254,255,
+           256,262,263,264,265,266,267,268,269,270,271,273,274,301,302,303,304,305,306) #Add in id numbers
+
+names(cfs2) <- make.names(names(cfs2))
+names(cfs2)[c(2,1)] <- c("ebslope","ebintercept") 
+
+
+# adding in fixed effects
+cfs2$intercept<- (6.86632 + cfs2$ebintercept) 
+cfs2$slope<- (-0.16157 + cfs2$ebslope)
+
+#Merge upper-level variables with the process data frame
+rndtzm <-merge(rndtzz, cfs2, all=TRUE, by="id")
+
+#Create predicted values based on within-subject causal model
+rndtzm$pred<-(rndtzm$intercept + rndtzm$slope*rndtzm$valenceE)
+
+#To create graphs based on observed data only: Sort the dataset by slope, ID, and valence
+ordrndtzm<-rndtzm[order(rndtzm$slope, rndtzm$id, rndtzm$valenceE),]
+
+#Sort the upper-level data frame by slope and ID
+ordcfs2<-cfs2[order(cfs2$slope, cfs2$id),]
+
+
+# panel plot sorted by random slope
+pdf(file="ordrando4_k.pdf", width=14, height=10)
+par(mfrow=c(6,10))
+for (i in c(208,222,255,248,267,266,263,212,303,205,220,304,273,226,209,221,246,245,306,254,
+            269,234,252,302,256,238,301,202,265,243,241,232,204,305,223,251,268,224,210,264,
+            274,236,237,249,235,271,262,228,229,240,201,219,206,244,270,239,207,247)) {  
+  plot(rndtzm$valenceE[rndtzm$id==i], rndtzm$logrt[rndtzm$id==i], 
+       ylab="logrt", xlab="Valence", type="p", pch=1, xlim=c(-0.8, 0.8), ylim=c(6,8),
+       main=paste(round(cfs2$slope[cfs2$id==i], digits=3)))
+  lines(ordrndtzm$valenceE[ordrndtzm$id==i], ordrndtzm$pred[ordrndtzm$id==i]) 
+}
+mtext("Log RT by Valence, ID's Sorted by Size of Random Slope", side=3, outer=TRUE, line=-1.2)
+dev.off()
+
+
+
+
+
+
+
+
+
+
