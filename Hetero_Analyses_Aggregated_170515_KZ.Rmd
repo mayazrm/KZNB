@@ -216,7 +216,7 @@ dev.off()
 
 # For working draft of script, see file RanData_Heterogeneity_170215
 
-ran6a <- read.csv("~/KZNB/Ran Data/exp6_all_data_long.csv")
+ran6a <- read.csv("ran_exp6_all_data_long.csv")
 ran6 <- subset(ran6a, exclude_from_analysis == "FALSE" & operand == "S" & rt != "NA")
 
 ran6$presentation_time_f <- as.factor(ran6$presentation_time)
