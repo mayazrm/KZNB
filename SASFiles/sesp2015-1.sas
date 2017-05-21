@@ -1,3 +1,138 @@
+*May 18, 2017 runs for \hetero\ paper;
+
+
+libname hetero "C:\Users\Niall\Documents\KZNB\SASFiles";
+run;
+
+
+
+
+*Sort dataset so that I can get basic results for each time point;
+title "Hetero Paper Analyses";
+proc sort data=hetero.rtexpt;
+by time_e subj trait_vale block;
+run;
+
+*RTlog version;
+title 'trait_vale effect, separately by time';
+title2 'RTlog version';
+proc mixed data=hetero.rtexpt covtest noclprint;
+class subj;
+model rt_log = trait_vale /solution ddfm=kr;
+random  intercept trait_vale/subject = subj type = un g gcorr;
+*lsmeans trait_vale/cl;
+by time_e;
+run;
+
+
+*Sort for combined analyses;
+title "Hetero Paper Analyses";
+proc sort data=hetero.rtexpt;
+by subj time_e trait_vale;
+run;
+
+*RTlog version;
+title 'Fixed effect of trait_vale, time and their interaction';
+title2 'Random trait valence effect (two variances and a covariance)';
+proc mixed data=hetero.rtexpt covtest noclprint;
+class subj trait_vale time_e;
+model rt_log = trait_vale time_e trait_vale*time_e/solution ddfm=kr;
+random  trait_vale/subject = subj type = un g gcorr;
+lsmeans trait_vale time_e trait_vale*time_e/cl;
+run;
+
+*Try to get out the population correlation of the trait-valence effects at each time point;
+proc mixed data=hetero.rtexpt covtest noclprint;
+class subj time_e;
+model rt_log =  time_e trait_vale*time_e/noint solution ddfm=kr;
+random time_e trait_vale*time_e/subject = subj type = un g gcorr solution;
+ods exclude SolutionR;
+ods output SolutionR = randpred;
+*lsmeans trait_vale time_e trait_vale*time_e;
+run;
+
+*RTlog version;
+*Note this is the model used to output random effects;
+title 'Note this is the model used to output random effects';
+title2 'Run showing sub-class means';
+title3 'RT_log version';
+title4 'Run showing sub-class means';
+proc mixed data=hetero.rtexpt covtest noclprint;
+class subj trait_vale time_e;
+model rt_log = time_e*trait_vale/noint solution ddfm=kr;
+random  time_e*trait_vale/subject = subj type = un g gcorr solution;
+ods exclude SolutionR;
+ods output SolutionR = randpred;
+*lsmeans trait_vale time_e trait_vale*time_e;
+run;
+
+
+data new;
+set randpred;
+if stderrpred ne 0;
+if df ne 1;
+run;
+
+data post2;
+set new;
+if trait_vale = 1 and time_e = 1;
+post2=estimate + 6.9032;
+run;
+
+data post1;
+set new;
+if trait_vale = 1 and time_e = -1;
+post1=estimate + 6.9725;
+
+data negt2;
+set new;
+if trait_vale = -1 and time_e = 1;
+negt2=estimate + 7.1111;
+run;
+
+data negt1;
+set new;
+if trait_vale = -1 and time_e = -1;
+negt1=estimate + 7.1087;
+run;
+
+data hetero.total;
+merge negt1 post1 negt2 post2;
+by subj;
+posminusneg1 = post1-negt1;
+posminusneg2 = post2-negt2;
+run;
+
+
+data total1;
+set hetero.total;
+if post1 ne .;
+if negt1 ne .;
+posminusneg1 = post1-negt1;
+posminusneg2 = post2-negt2;
+run;
+
+proc corr data=total1 plots=scatter;
+var negt1 post1 negt2 post2 posminusneg1 posminusneg2;
+run;
+
+proc corr data=total1 plots=scatter;
+var posminusneg1 posminusneg2;
+run;
+
+proc sgscatter data = total1;
+plot posminusneg1*posminusneg2;
+run;
+
+
+
+
+
+
+
+
+
+*****SESP2015 analyses below this;
 libname SESP2015 "C:\Users\Niall\Dropbox\NIALL1\MET\Suppes Talk\SESP2015";
 run;
 
@@ -35,6 +170,7 @@ var rt_log;
 by subj time_e trait_vale;
 output out=means mean=mean n=N;
 run;
+
 
 
 *RTlog version;

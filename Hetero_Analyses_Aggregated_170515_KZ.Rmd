@@ -537,4 +537,3 @@ plot(ellipse(sigmaII, centre = muII, level=0.95, npoints=1000), type="l", lwd=4,
 
 
 ```
-
