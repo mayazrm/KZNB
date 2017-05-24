@@ -50,6 +50,8 @@ logRTboth1 <- lmer(rt_log ~ -1 + RTexptboth$t1 + RTexptboth$t2
                   data=RTexptboth)
 summary(logRTboth1)
 ranefboth1 <- ranef(logRTboth1)$subj
+ranefboth1$t1_trait_vale <-  ranefboth1$`RTexptboth$t1:RTexptboth$trait_vale` + -0.06972
+ranefboth1$t2_trait_vale <-  ranefboth1$`RTexptboth$t2:RTexptboth$trait_vale` + -0.09576
 cor(ranef(logRTboth1)$subj)
 
 
@@ -72,7 +74,7 @@ summary(logRTboth1B)
 
 
 
-#This show the 4 cell means and their intercorrelations
+#This shows the 4 cell means and their intercorrelations
 logRTboth <- lmer(rt_log ~ -1 + RTexptboth$t1neg + RTexptboth$t1pos 
                   + RTexptboth$t2neg + RTexptboth$t2pos +
                     (-1 + RTexptboth$t1neg + RTexptboth$t1pos 
@@ -91,6 +93,47 @@ cor((ranefboth$`RTexptboth$t1neg` - ranefboth$`RTexptboth$t1pos`),
 
 
 #############################
+
+############################################################################################
+#Trait_Vale Random Effects for Time 1 and Time 2
+############################################################################################
+
+windows()
+par(mfrow=c(2,1)) 
+stripchart(ranefboth1$t1_trait_vale, pch=21, bg="skyblue", cex=3.5, lwd=2,
+           xlim=c(-.3, .1), xlab="Trait Valence Effect: Time 1", cex.axis=1.5, cex.lab=1.5)
+#abline(v=c(-.146), lwd=5, col="skyblue")
+#mtext("-0.25", 1, line=2.7, adj=.48, cex=2)
+#mtext("Average", 3, line=.5, adj=.48, cex=2)
+
+stripchart(ranefboth1$t2_trait_vale, pch=21, bg="skyblue", cex=3.5, lwd=2, xlim=c(-.3, .1),
+           xlab="Trait Valence Effect: Time 2", cex.axis=1.5, cex.lab=1.5)
+#abline(v=c(-.254), lwd=5, col="skyblue")
+#mtext("-0.25", 1, line=2.7, adj=.48, cex=2)
+#mtext("Average", 3, line=.5, adj=.48, cex=2)
+
+library(ellipse)
+
+cortocov(0.95, 0.00869, 0.01834) #[1] 0.01199315
+
+
+muII=c(-0.06972, -0.09576)
+sigmaII=matrix(c(0.00869, 0.01199315, 0.01199315, 0.01834), nrow=2, byrow=TRUE)
+
+windows()
+par(mfrow=c(1,1)) 
+plot(ranefboth1$t1_trait_vale, ranefboth1$t2_trait_vale, pch=21, bg="skyblue",
+     cex=3.5, lwd=2, xlim=c(-.3, .1), ylim=c(-.3, .1),
+     xlab="Trait Valence Effect: Time 1", ylab="Trait Valence Effect: Time 2",
+     cex.lab=1.5, cex.axis=1.5)
+par(new=T)
+plot(ellipse(sigmaII, centre = muII, level=0.95, npoints=1000), type="l", lwd=4,
+     xlim=c(-.3, .1), ylim=c(-.3, .1), xlab="", ylab="",
+     cex.lab=1.5, cex.axis=1.5)
+
+
+
+####################################################
 #Older stuff;
 library(nlme)
 #Run mixed effects model with AR(1) errors: Raw Reaction Times
