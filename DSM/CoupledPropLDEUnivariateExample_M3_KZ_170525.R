@@ -20,8 +20,13 @@ library(psych)
 source("GLLAfunctions.R")
 mxOption(NULL, 'Default optimizer', 'NPSOL')
 
+
+##### Example with Simulated Data #####
+
 # ----------------------------------
 # Read the data.
+
+
 
 tData <- read.csv("CoupledLDE.csv", header=TRUE)
 describe(tData)
