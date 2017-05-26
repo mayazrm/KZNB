@@ -218,20 +218,19 @@ kzData1b <- subset(kzData1, phase =="femaleprovide")
 #kzData1b <- subset(kzData1, phase =="femalereceive")
 
 
-tData <- as.data.frame(cbind(kzData1b$rsa.basec, kzData1b$b.rsa.basec))
-colnames(tData) <- c("x", "y")
+tData2 <- as.data.frame(cbind(kzData1b$rsa.basec, kzData1b$b.rsa.basec))
+colnames(tData2) <- c("x", "y")
 
-acf(tData)
+acf(tData2)
 
 
 
 # with IBI data 
 
-kzData2 <- read.csv("/Users/zeekatherine/Desktop/R Files/RCC_Data/RCC_physio_shortintervals/RCC_168_5sec.csv")
-kzData2$ibi.wc <- kzData2$ibi - kzData2$ibibase
-kzData2$b.ibi.wc <- kzData2$b.ibi - kzData2$b.ibibase
-
-kzData2b <- subset (kzData2, phase == "femaleprovide")
+#kzData2 <- read.csv("/Users/zeekatherine/Desktop/R Files/RCC_Data/RCC_physio_shortintervals/RCC_168_5sec.csv")
+#kzData2$ibi.wc <- kzData2$ibi - kzData2$ibibase
+#kzData2$b.ibi.wc <- kzData2$b.ibi - kzData2$b.ibibase
+#kzData2b <- subset (kzData2, phase == "femaleprovide")
 
 #tData <- as.data.frame(cbind(kzData2b$ibi.wc, kzData2b$b.ibi.wc))
 #colnames(tData) <- c("x", "y")
@@ -240,39 +239,39 @@ kzData2b <- subset (kzData2, phase == "femaleprovide")
 # ----------------------------------
 # Time-delay embed the data.
 
-embedD <- 4
-theTau <- 1
-deltaT <- 1
+embedD2 <- 4
+theTau2 <- 1
+deltaT2 <- 1
 
-numIndicators <- 2
+numIndicators2 <- 2
 
 # ----------------------------------
 # Time-delay embed the data.
 
-tEmbedded <- cbind(gllaEmbed(tData[,1], embed=embedD, tau=theTau, label="x", idColumn=FALSE),
-                   gllaEmbed(tData[,2], embed=embedD, tau=theTau, label="y", idColumn=FALSE))
+tEmbedded2 <- cbind(gllaEmbed(tData2[,1], embed=embedD2, tau=theTau2, label="x", idColumn=FALSE),
+                   gllaEmbed(tData2[,2], embed=embedD2, tau=theTau2, label="y", idColumn=FALSE))
 
 # ----------------------------------
 # Create the fixed LDE loading matrix.
 
-L1 <- rep(1,embedD)
-L2 <- c(1:embedD)*theTau*deltaT-mean(c(1:embedD)*theTau*deltaT)
-L3 <-  (L2^2)/2
-LMatrix <- cbind(L1,L2,L3)
+L12 <- rep(1,embedD2)
+L22 <- c(1:embedD2)*theTau2*deltaT2-mean(c(1:embedD2)*theTau2*deltaT2)
+L32 <-  (L22^2)/2
+LMatrix2 <- cbind(L12,L22,L32)
 
 # ----------------------------------
 # Create a 2nd order Multivariate LDE model.
 
-manifestVars <- dimnames(tEmbedded)[[2]]
-ldeModelCoupled1 <- mxModel("LDE_Coupled_Model_1",
+manifestVars2 <- dimnames(tEmbedded2)[[2]]
+ldeModelCoupled1_2 <- mxModel("LDE_Coupled_Model_1_2",
                             mxMatrix("Iden", 2, name="I2"),
                             mxMatrix("Full",  
-                                     values=LMatrix, 
+                                     values=LMatrix2, 
                                      free=FALSE, 
                                      name="LFixed", 
                                      byrow=TRUE
                             ),
-                            mxMatrix("Zero", embedD*numIndicators, 2, name="Z"),
+                            mxMatrix("Zero", embedD2*numIndicators2, 2, name="Z"),
                             mxAlgebra(cbind(I2 %x% LFixed, Z), name="L"),
                             mxMatrix("Full", 8, 8, 
                                      values=c(  0,  0,  0,  0,  0,  0,  0,  0,
@@ -354,32 +353,32 @@ ldeModelCoupled1 <- mxModel("LDE_Coupled_Model_1",
                                               NA, NA, NA, NA, NA, NA, NA, 
                                               NA, NA, NA, NA, NA, NA, NA, NA), 
                             ),
-                            mxMatrix("Diag", embedD*numIndicators, embedD*numIndicators, 
+                            mxMatrix("Diag", embedD2*numIndicators2, embedD2*numIndicators2, 
                                      values=.8, 
                                      free=TRUE, 
-                                     labels=c(rep("uX", embedD), rep("uY", embedD)), 
+                                     labels=c(rep("uX", embedD2), rep("uY", embedD2)), 
                                      name="U",
                                      lbound=0.000001
                             ),
                             mxMatrix("Iden", 8, name="I"),
                             mxAlgebra(L %*% solve(I-A) %*% S %*% t(solve(I-A)) %*% t(L) + U, 
                                       name="R", 
-                                      dimnames = list(manifestVars, manifestVars)
+                                      dimnames = list(manifestVars2, manifestVars2)
                             ),
                             mxExpectationNormal(covariance="R"),
                             mxFitFunctionML(),
-                            mxData(cov(tEmbedded), 
+                            mxData(cov(tEmbedded2), 
                                    type="cov", 
-                                   numObs=dim(tEmbedded)[1]
+                                   numObs=dim(tEmbedded2)[1]
                             )
 )
 
 # ----------------------------------
 # Fit the LDE model and examine the summary results.
 
-ldeModel1CoupledFit <- mxRun(ldeModelCoupled1)
+ldeModel1CoupledFit_2 <- mxRun(ldeModelCoupled1_2)
 
-summary(ldeModel1CoupledFit)
+summary(ldeModel1CoupledFit_2)
 
 
 ##### with KZ data with multiple Dyads #####
@@ -387,46 +386,46 @@ summary(ldeModel1CoupledFit)
 kzData1 <- read.csv("rcc_physio_subset_TEMP_forDSM.csv")
 
 #tData <- as.data.frame(cbind(kzData1$ibi.wc, kzData1$b.ibi.wc))
-tData <- as.data.frame(cbind(kzData1$rsa.basec, kzData1$b.rsa.basec))
-colnames(tData) <- c("x", "y")
+tData3 <- as.data.frame(cbind(kzData1$rsa.basec, kzData1$b.rsa.basec))
+colnames(tData3) <- c("x", "y")
 
-acf(tData)
+acf(tData3)
 # ----------------------------------
 # Time-delay embed the data.
 
-embedD <- 12
-theTau <- 1
-deltaT <- 1
+embedD3 <- 12
+theTau3 <- 1
+deltaT3 <- 1
 
-numIndicators <- 2
+numIndicators3 <- 2
 
 # ----------------------------------
 # Time-delay embed the data.
 
-tEmbedded <- cbind(gllaEmbed(tData[,1], embed=embedD, tau=theTau, label="x", idColumn=FALSE),
-                   gllaEmbed(tData[,2], embed=embedD, tau=theTau, label="y", idColumn=FALSE))
+tEmbedded3 <- cbind(gllaEmbed(tData3[,1], embed=embedD3, tau=theTau3, label="x", idColumn=FALSE),
+                   gllaEmbed(tData3[,2], embed=embedD3, tau=theTau3, label="y", idColumn=FALSE))
 
 # ----------------------------------
 # Create the fixed LDE loading matrix.
 
-L1 <- rep(1,embedD)
-L2 <- c(1:embedD)*theTau*deltaT-mean(c(1:embedD)*theTau*deltaT)
-L3 <-  (L2^2)/2
-LMatrix <- cbind(L1,L2,L3)
+L13 <- rep(1,embedD3)
+L23 <- c(1:embedD3)*theTau3*deltaT3-mean(c(1:embedD3)*theTau3*deltaT3)
+L33 <-  (L23^2)/2
+LMatrix3 <- cbind(L13,L23,L33)
 
 # ----------------------------------
 # Create a 2nd order Multivariate LDE model.
 
-manifestVars <- dimnames(tEmbedded)[[2]]
-ldeModelCoupled1 <- mxModel("LDE_Coupled_Model_1",
+manifestVars3 <- dimnames(tEmbedded3)[[2]]
+ldeModelCoupled1_3 <- mxModel("LDE_Coupled_Model_1_3",
                             mxMatrix("Iden", 2, name="I2"),
                             mxMatrix("Full",  
-                                     values=LMatrix, 
+                                     values=LMatrix3, 
                                      free=FALSE, 
                                      name="LFixed", 
                                      byrow=TRUE
                             ),
-                            mxMatrix("Zero", embedD*numIndicators, 2, name="Z"),
+                            mxMatrix("Zero", embedD3*numIndicators3, 2, name="Z"),
                             mxAlgebra(cbind(I2 %x% LFixed, Z), name="L"),
                             mxMatrix("Full", 8, 8, 
                                      values=c(  0,  0,  0,  0,  0,  0,  0,  0,
@@ -508,30 +507,30 @@ ldeModelCoupled1 <- mxModel("LDE_Coupled_Model_1",
                                               NA, NA, NA, NA, NA, NA, NA, 
                                               NA, NA, NA, NA, NA, NA, NA, NA), 
                             ),
-                            mxMatrix("Diag", embedD*numIndicators, embedD*numIndicators, 
+                            mxMatrix("Diag", embedD3*numIndicators3, embedD3*numIndicators3, 
                                      values=.8, 
                                      free=TRUE, 
-                                     labels=c(rep("uX", embedD), rep("uY", embedD)), 
+                                     labels=c(rep("uX", embedD3), rep("uY", embedD3)), 
                                      name="U",
                                      lbound=0.000001
                             ),
                             mxMatrix("Iden", 8, name="I"),
                             mxAlgebra(L %*% solve(I-A) %*% S %*% t(solve(I-A)) %*% t(L) + U, 
                                       name="R", 
-                                      dimnames = list(manifestVars, manifestVars)
+                                      dimnames = list(manifestVars3, manifestVars3)
                             ),
                             mxExpectationNormal(covariance="R"),
                             mxFitFunctionML(),
-                            mxData(cov(tEmbedded), 
+                            mxData(cov(tEmbedded3), 
                                    type="cov", 
-                                   numObs=dim(tEmbedded)[1]
+                                   numObs=dim(tEmbedded3)[1]
                             )
 )
 
 # ----------------------------------
 # Fit the LDE model and examine the summary results.
 
-ldeModel1CoupledFit <- mxRun(ldeModelCoupled1)
+ldeModel1CoupledFit_3 <- mxRun(ldeModelCoupled1_3)
 
-summary(ldeModel1CoupledFit)
+summary(ldeModel1CoupledFit_3)
 
