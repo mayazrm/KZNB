@@ -151,12 +151,19 @@ dev.off()
 
 ranfacefo1 <- read.csv("ranfacefo1.csv") # contains Upright and Upside-Down Conditions Only
 
+########
+#Fix scaling of RT: it is in hundreths of ms; make it ms;
+ranfacefo1$rtms <- ranfacefo1$RT*100
+ranfacefo1$logRT <- log(ranfacefo1$RT*100)
 
 #Run Upright-Upsidedown Model
 
 ranfacem1 <- lmer(logRT ~ fo1 + (fo1 | Participant), data = ranfacefo1)
 summary(ranfacem1)
-# confint(ranfacem1)
+confint(ranfacem1)
+#For computing population ranges: N=21, df=20, t_95 = 2.08
+#Intercept range: 5.21 + 2.09*0.33 = 5.90; 5.21 - 2.09*0.33 = 4.52
+#Slope     range:-0.20 + 2.09*0.11 = 0.03;-0.20 - 2.09*0.33 =-0.43
 
 #Run Model with Random Intercept Only
 ranfacem1_intonly <- lmer(logRT ~ fo1 + (1 | Participant), data = ranfacefo1)
@@ -236,6 +243,7 @@ confint(ran6mod1, oldNames = FALSE)
 ## random slopes
 ran6mod2 <- lmer(logrt ~ congr*ptimer + (1 + congr | subject), data = ran6)
 summary(ran6mod2)
+confint(ran6mod2)
 
 anova(ran6mod1, ran6mod2)
 ```
