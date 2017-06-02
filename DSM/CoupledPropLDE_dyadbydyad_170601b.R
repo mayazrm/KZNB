@@ -101,7 +101,10 @@ dev.off()
 ##### Setting Embedding #####
 
 
-embedD <- 7
+embedD <- 8
+# ^ with value of 5, major issues estimating zeta. 
+# with value of 7, gammas go to outer bounds
+
 theTau <- 1
 deltaT <- 1
 
@@ -286,7 +289,7 @@ ldeout[(dyadids$rownum[dyadids$dyad==i]), ] = c(dyad = i, etaX.est = ldeModel1Co
 View(ldeout)
 print(ldeout)
 summarize(ldeout)
-
+#write.csv(ldeout, "CoupledPropLDE_dyadbydyad_modeloutput_170602.csv")
 
 
 
