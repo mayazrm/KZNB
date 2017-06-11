@@ -49,6 +49,29 @@ logRTboth1 <- lmer(rt_log ~ -1 + RTexptboth$t1 + RTexptboth$t2
                      + RTexptboth$t2:RTexptboth$trait_vale | subj), 
                   data=RTexptboth)
 summary(logRTboth1)
+confint(logRTboth1)
+# Computing profile confidence intervals ...
+# 2.5 %      97.5 %
+#   .sig01                               0.13584876  0.23028754
+# .sig02                              -1.00000000  0.84206141
+# .sig03                               0.01375711  1.00000000
+# .sig04                              -1.00000000 -0.21990876
+# .sig05                               0.20485376         Inf
+# .sig06                              -1.00000000  1.00000000
+# .sig07                              -1.00000000 -0.08892911
+# .sig08                               0.08181561  0.11799995
+# .sig09                               0.81355927  0.96125816
+# .sig10                               0.12917070  0.13758424
+# .sigma                               0.00000000  0.34671474
+# RTexptboth$t1                        6.96064777  7.14715481
+# RTexptboth$t2                        6.90164491  7.10615734
+# RTexptboth$t1:RTexptboth$trait_vale -0.12677832 -0.01497919
+# RTexptboth$t2:RTexptboth$trait_vale -0.16813057 -0.02568542
+
+####################
+#Population Range
+#t1-Int: 7.05 - 2.09*0.19 =    ;7.05 + 2.09*0.19
+
 ranefboth1 <- ranef(logRTboth1)$subj
 ranefboth1$t1_trait_vale <-  ranefboth1$`RTexptboth$t1:RTexptboth$trait_vale` + -0.06972
 ranefboth1$t2_trait_vale <-  ranefboth1$`RTexptboth$t2:RTexptboth$trait_vale` + -0.09576

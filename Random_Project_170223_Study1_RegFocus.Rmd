@@ -294,7 +294,9 @@ rndtzz <- within(rndtzz, {
   idcat <- as.factor(id)
 })
 
-
+##############
+#Used in paper
+##############
 aggs1aa.out = aov(logrt ~ valenceE + idcat, data=aggs1aa)
 summary(aggs1aa.out)
 
@@ -308,6 +310,12 @@ anova(lm(logrt ~ valenceE + idcat, data = aggs1aa))
 #Run interaction model
 anova(lm(logrt ~ valenceE + idcat, data = rndtzz))
 anova(lm(logrt ~ valenceE*idcat, data = rndtzz))
+
+#Run as mixed-model (June 1, 2017, CI for int included in table in draft)
+library(lme4)
+library(lmerTest)
+summary(lmer(logrt ~ valenceE + (1|idcat), data = aggs1aa))
+confint(lmer(logrt ~ valenceE + (1|idcat), data = aggs1aa))
 
 #Find cases with only one observation on aggregated valenceE
 #by calculating the mean 
@@ -329,9 +337,14 @@ rndtzz<-rndtz[!(rndtz$id %in% c(250, 257, 272)), ]
 mle3aaa <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtzz))
 summary(mle3aaa)
 
-
 mle3aaa_orig <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtz))
 summary(mle3aaa_orig)
+
+#Version with no random slopes (used in paper)
+mle3aaa <- (lmer(logrt ~ valenceE + (1| id),  data=rndtzz))
+summary(mle3aaa)
+
+
 
 ```
 
