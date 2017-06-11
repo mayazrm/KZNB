@@ -286,7 +286,7 @@ ldeout[(dyadids$rownum[dyadids$dyad==i]), ] = c(dyad = i, etaX.est = ldeModel1Co
 }
 
 # https://stat.ethz.ch/pipermail/r-help/2006-June/107734.html
-View(ldeout)
+#View(ldeout)
 print(ldeout)
 summarize(ldeout)
 #write.csv(ldeout, "CoupledPropLDE_dyadbydyad_modeloutput_170602.csv")

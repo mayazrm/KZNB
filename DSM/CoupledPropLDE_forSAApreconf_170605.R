@@ -195,6 +195,8 @@ summary(ldeModel1CoupledFit)
 
 ##### with KZ data with 1 Dyad - Male Receive/Female Provide#####
 
+
+
 mean.na <- function (x) {
   out <- mean(x, na.rm=T)
   out
@@ -214,8 +216,8 @@ kzData1<- within(kzData1, {b.ibibase.mean = ave(b.ibi, phase[kzData1$phase=="bas
 kzData1$rsa.basec <- kzData1$rsa - kzData1$rsabase.mean
 kzData1$b.rsa.basec <- kzData1$b.rsa - kzData1$b.rsabase.mean
 kzData1b <- subset(kzData1, phase =="femaleprovide")
-
-
+kzData1b$time.r <- kzData1b$time - 90
+kzData1b$base <- 0
 
 tData2 <- as.data.frame(cbind(kzData1b$rsa.basec, kzData1b$b.rsa.basec))
 colnames(tData2) <- c("x", "y")
@@ -223,10 +225,40 @@ colnames(tData2) <- c("x", "y")
 acf(tData2)
 
 
+
+pdf("Raw_Data_178_femaleprovide.pdf", height = 6, width = 5)
+plot(c(1, 30), c(-3, 3),
+     xlab="Time",
+     ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
+lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
+lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
+lines(kzData1b$time.r, kzData1b$base, type='l', lty=1, col=1)
+dev.off()
+
+
+pdf("Raw_Data_178_femaleprovide_withlines.pdf", height = 6, width = 5)
+  plot(c(1, 30), c(-3, 3),
+       xlab="Time",
+       ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
+  lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
+  lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
+  lines(kzData1b$time.r, kzData1b$base, type='l', lty=1, col=1)
+  lines(kzData1b$time.r[order(kzData1b$time.r)], 
+        kzData1b$rsa.basec[order(kzData1b$time)], 
+        xlim=range(kzData1b$time), ylim=range(kzData1b$rsa.basec), 
+        pch=16, col = "deeppink", lwd = 2)
+  lines(kzData1b$time.r[order(kzData1b$time.r)], 
+        kzData1b$b.rsa.basec[order(kzData1b$time)], 
+        xlim=range(kzData1b$time), ylim=range(kzData1b$b.rsa.basec), 
+        pch=16, col = "blue", lwd = 2)
+dev.off()
+
+
+
 # ----------------------------------
 # Time-delay embed the data.
 
-embedD2 <- 4
+embedD2 <- 5 # embed of 5 seems to work best for female receive/male provide, but 4 is better for male receive/female provide
 theTau2 <- 1
 deltaT2 <- 1
 
@@ -373,13 +405,45 @@ summary(ldeModel1CoupledFit_2)
 ##### with KZ data with 1 Dyad - Female Receive/Male Provide #####
 
 kzData1c <- subset(kzData1, phase =="femalereceive")
-
+kzData1c$base <- 0
+kzData1c$time.r <- kzData1c$time - 60 
 
 tData2b <- as.data.frame(cbind(kzData1c$rsa.basec, kzData1c$b.rsa.basec))
 colnames(tData2b) <- c("x", "y")
 
 acf(tData2b)
 
+
+
+
+
+
+pdf("Raw_Data_178_maleprovide.pdf", height = 6, width = 5)
+plot(c(1, 30), c(-3, 3),
+     xlab="Time",
+     ylab="RSA (Baseline Centered)", main = "Male Provide / Female Receive", col = "white")
+lines(kzData1c$time.r, kzData1c$rsa.basec, type='p', lwd=2, col='deeppink')
+lines(kzData1c$time.r, kzData1c$b.rsa.basec, type='p', lwd=2, col='blue')
+lines(kzData1c$time.r, kzData1c$base, type='l', lty=1, col=1)
+dev.off()
+
+
+pdf("Raw_Data_178_maleprovide_withlines.pdf", height = 6, width = 5)
+plot(c(1, 30), c(-3, 3),
+     xlab="Time",
+     ylab="RSA (Baseline Centered)", main = "Male Provide / Female Receive", col = "white")
+lines(kzData1c$time.r, kzData1c$rsa.basec, type='p', lwd=2, col='deeppink')
+lines(kzData1c$time.r, kzData1c$b.rsa.basec, type='p', lwd=2, col='blue')
+lines(kzData1c$time.r, kzData1c$base, type='l', lty=1, col=1)
+lines(kzData1c$time.r[order(kzData1c$time.r)], 
+      kzData1c$rsa.basec[order(kzData1c$time)], 
+      xlim=range(kzData1c$time), ylim=range(kzData1c$rsa.basec), 
+      pch=16, col = "deeppink", lwd = 2)
+lines(kzData1c$time.r[order(kzData1c$time.r)], 
+      kzData1c$b.rsa.basec[order(kzData1c$time)], 
+      xlim=range(kzData1c$time), ylim=range(kzData1c$b.rsa.basec), 
+      pch=16, col = "blue", lwd = 2)
+dev.off()
 
 
 
@@ -518,157 +582,4 @@ ldeModel1CoupledFit_2b <- mxRun(ldeModelCoupled1_2b)
 
 summary(ldeModel1CoupledFit_2b)
 
-
-##### with KZ data with multiple Dyads #####
-
-kzData1 <- read.csv("rcc_physio_subset_TEMP_forDSM.csv")
-
-#tData <- as.data.frame(cbind(kzData1$ibi.wc, kzData1$b.ibi.wc))
-tData3 <- as.data.frame(cbind(kzData1$rsa.basec, kzData1$b.rsa.basec))
-colnames(tData3) <- c("x", "y")
-
-acf(tData3)
-# ----------------------------------
-# Time-delay embed the data.
-
-embedD3 <- 12
-theTau3 <- 1
-deltaT3 <- 1
-
-numIndicators3 <- 2
-
-# ----------------------------------
-# Time-delay embed the data.
-
-tEmbedded3 <- cbind(gllaEmbed(tData3[,1], embed=embedD3, tau=theTau3, label="x", idColumn=FALSE),
-                   gllaEmbed(tData3[,2], embed=embedD3, tau=theTau3, label="y", idColumn=FALSE))
-
-# ----------------------------------
-# Create the fixed LDE loading matrix.
-
-L13 <- rep(1,embedD3)
-L23 <- c(1:embedD3)*theTau3*deltaT3-mean(c(1:embedD3)*theTau3*deltaT3)
-L33 <-  (L23^2)/2
-LMatrix3 <- cbind(L13,L23,L33)
-
-# ----------------------------------
-# Create a 2nd order Multivariate LDE model.
-
-manifestVars3 <- dimnames(tEmbedded3)[[2]]
-ldeModelCoupled1_3 <- mxModel("LDE_Coupled_Model_1_3",
-                            mxMatrix("Iden", 2, name="I2"),
-                            mxMatrix("Full",  
-                                     values=LMatrix3, 
-                                     free=FALSE, 
-                                     name="LFixed", 
-                                     byrow=TRUE
-                            ),
-                            mxMatrix("Zero", embedD3*numIndicators3, 2, name="Z"),
-                            mxAlgebra(cbind(I2 %x% LFixed, Z), name="L"),
-                            mxMatrix("Full", 8, 8, 
-                                     values=c(  0,  0,  0,  0,  0,  0,  0,  0,
-                                                0,  0,  0,  0,  0,  0,  0,  0,
-                                                0,  0,  0,  0,  0,  0,  1,  .1,
-                                                0,  0,  0,  0,  0,  0,  0,  0,
-                                                0,  0,  0,  0,  0,  0,  0,  0,
-                                                0,  0,  0,  0,  0,  0,  .1,  1,
-                                                -.2,-.2,  0,  0,  0,  0,  0,  0,
-                                                0,  0,  0,-.2,-.2,  0,  0,  0), 
-                                     labels=c(    NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                  NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                  NA,     NA,     NA,     NA,     NA,     NA,     NA,"gammaX",
-                                                  NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                  NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                  NA,     NA,     NA,     NA,     NA,     NA,"gammaY",    NA,
-                                                  "etaX","zetaX",     NA,     NA,     NA,     NA,     NA,     NA,
-                                                  NA,     NA,     NA, "etaY","zetaY",     NA,     NA,     NA), 
-                                     free=c( F,F,F,F,F,F,F,F,
-                                             F,F,F,F,F,F,F,F,
-                                             F,F,F,F,F,F,F,T,
-                                             F,F,F,F,F,F,F,F,
-                                             F,F,F,F,F,F,F,F,
-                                             F,F,F,F,F,F,T,F,
-                                             T,T,F,F,F,F,F,F,
-                                             F,F,F,T,T,F,F,F), 
-                                     ubound=c(   NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,     .4,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     .4,    NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA), 
-                                     lbound=c(   NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,    -.4,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,    -.4,    NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA,
-                                                 NA,     NA,     NA,     NA,     NA,     NA,     NA,     NA), 
-                                     name="A", 
-                                     byrow=TRUE
-                            ),
-                            mxMatrix("Symm", 8, 8,
-                                     values=c(  .8,
-                                                0, .8,
-                                                0, 0, .8,
-                                                -.1, -.1, 0, .8,
-                                                -.1, -.1, 0, 0, .8,
-                                                0, 0, 0, 0, 0, .8,
-                                                0, 0, 0, 0, 0, 0, 0,
-                                                0, 0, 0, 0, 0, 0, 0, 0), 
-                                     free=c( T,
-                                             F, T,
-                                             F, F, T,
-                                             T, T, F, T,
-                                             T, T, F, F, T,
-                                             F, F, F, F, F, T,
-                                             F, F, F, F, F, F, F,
-                                             F, F, F, F, F, F, F, F), 
-                                     labels=c("VX",
-                                              NA, "VdX",
-                                              NA, NA, "Vd2X",
-                                              NA, NA, NA, "VY",
-                                              NA, NA, NA, NA, "VdY",
-                                              NA, NA, NA, NA, NA, "Vd2Y", 
-                                              NA, NA, NA, NA, NA, NA, NA, 
-                                              NA, NA, NA, NA, NA, NA, NA, NA), 
-                                     name="S", 
-                                     byrow=TRUE,
-                                     lbound=c(0.00000001,
-                                              NA, 0.00000001,
-                                              NA, NA, 0.00000001,
-                                              NA, NA, NA, 0.00000001,
-                                              NA, NA, NA, NA, 0.00000001,
-                                              NA, NA, NA, NA, NA, 0.00000001,
-                                              NA, NA, NA, NA, NA, NA, NA, 
-                                              NA, NA, NA, NA, NA, NA, NA, NA), 
-                            ),
-                            mxMatrix("Diag", embedD3*numIndicators3, embedD3*numIndicators3, 
-                                     values=.8, 
-                                     free=TRUE, 
-                                     labels=c(rep("uX", embedD3), rep("uY", embedD3)), 
-                                     name="U",
-                                     lbound=0.000001
-                            ),
-                            mxMatrix("Iden", 8, name="I"),
-                            mxAlgebra(L %*% solve(I-A) %*% S %*% t(solve(I-A)) %*% t(L) + U, 
-                                      name="R", 
-                                      dimnames = list(manifestVars3, manifestVars3)
-                            ),
-                            mxExpectationNormal(covariance="R"),
-                            mxFitFunctionML(),
-                            mxData(cov(tEmbedded3), 
-                                   type="cov", 
-                                   numObs=dim(tEmbedded3)[1]
-                            )
-)
-
-# ----------------------------------
-# Fit the LDE model and examine the summary results.
-
-ldeModel1CoupledFit_3 <- mxRun(ldeModelCoupled1_3)
-
-summary(ldeModel1CoupledFit_3)
 
