@@ -34,7 +34,7 @@ describe(tData)
 # ----------------------------------
 # Plot the time series.
 
-#pdf("CoupledTimeSeries.pdf", height=5, width=6)
+##pdf("CoupledTimeSeries.#pdf", height=5, width=6)
 plot(c(1, dim(tData)[1]), c(-10, 10),
      xlab="Time",
      ylab="Score",
@@ -42,7 +42,7 @@ plot(c(1, dim(tData)[1]), c(-10, 10),
 lines(c(1:dim(tData)[1]), tData[,1], type='p', lwd=2, col='red')
 lines(c(1:dim(tData)[1]), tData[,2], type='p', lwd=2, col='blue')
 lines(c(1, dim(tData)[1]), c(-0, 0), type='l', lty=1, col=1)
-#dev.off()
+##dev.off()
 
 
 
@@ -226,17 +226,17 @@ acf(tData2)
 
 
 
-pdf("Raw_Data_178_femaleprovide.pdf", height = 6, width = 5)
+##pdf("Raw_Data_178_femaleprovide.#pdf", height = 6, width = 5)
 plot(c(1, 30), c(-3, 3),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
 lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
 lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
 lines(kzData1b$time.r, kzData1b$base, type='l', lty=1, col=1)
-dev.off()
+##dev.off()
 
 
-pdf("Raw_Data_178_femaleprovide_withlines.pdf", height = 6, width = 5)
+#pdf("Raw_Data_178_femaleprovide_withlines.#pdf", height = 6, width = 5)
   plot(c(1, 30), c(-3, 3),
        xlab="Time",
        ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
@@ -251,7 +251,7 @@ pdf("Raw_Data_178_femaleprovide_withlines.pdf", height = 6, width = 5)
         kzData1b$b.rsa.basec[order(kzData1b$time)], 
         xlim=range(kzData1b$time), ylim=range(kzData1b$b.rsa.basec), 
         pch=16, col = "blue", lwd = 2)
-dev.off()
+#dev.off()
 
 
 
@@ -418,17 +418,17 @@ acf(tData2b)
 
 
 
-pdf("Raw_Data_178_maleprovide.pdf", height = 6, width = 5)
+#pdf("Raw_Data_178_maleprovide.#pdf", height = 6, width = 5)
 plot(c(1, 30), c(-3, 3),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Male Provide / Female Receive", col = "white")
 lines(kzData1c$time.r, kzData1c$rsa.basec, type='p', lwd=2, col='deeppink')
 lines(kzData1c$time.r, kzData1c$b.rsa.basec, type='p', lwd=2, col='blue')
 lines(kzData1c$time.r, kzData1c$base, type='l', lty=1, col=1)
-dev.off()
+#dev.off()
 
 
-pdf("Raw_Data_178_maleprovide_withlines.pdf", height = 6, width = 5)
+#pdf("Raw_Data_178_maleprovide_withlines.#pdf", height = 6, width = 5)
 plot(c(1, 30), c(-3, 3),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Male Provide / Female Receive", col = "white")
@@ -443,7 +443,7 @@ lines(kzData1c$time.r[order(kzData1c$time.r)],
       kzData1c$b.rsa.basec[order(kzData1c$time)], 
       xlim=range(kzData1c$time), ylim=range(kzData1c$b.rsa.basec), 
       pch=16, col = "blue", lwd = 2)
-dev.off()
+#dev.off()
 
 
 
