@@ -88,7 +88,9 @@ dev.off()
 
 
 
-
+#####
+#ACF for rsa of female partners
+#####
 pdf("ACF_Panel_Plots.pdf", height = 12, width = 12)
 par(mfrow=c(4,4))
 for (i in dyadids$dyad) {
@@ -96,6 +98,17 @@ for (i in dyadids$dyad) {
 }
 dev.off()
 
+
+
+#####
+#ACF for rsa of male partners
+#####
+pdf("ACF_Panel_Plots_Male.pdf", height = 12, width = 12)
+par(mfrow=c(4,4))
+for (i in dyadids$dyad) {
+  acf(tData$b.rsa.basec)[tData$dyad==i]
+}
+dev.off()
 
 
 ##### Setting Embedding #####
