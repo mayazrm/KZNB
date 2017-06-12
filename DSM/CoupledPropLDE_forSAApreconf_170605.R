@@ -401,6 +401,122 @@ summary(ldeModel1CoupledFit_2)
 
 
 
+##### KZ data Male Receive Prediction Plot #####
+
+library(deSolve)
+
+# ----------------------------------
+# Set constants.
+
+totalSamples <- 30
+totalInterval <- 10
+deltaT <- totalInterval / totalSamples
+
+#theTimes  <- seq(0, totalInterval, length=totalSamples)  # the measurement occasions
+theTimes  <- c(1:30)
+
+
+# ----------------------------------
+# Define the damped linear oscillator model.
+#   Note that y(t) = dx(t)/dt as in the Mathematica model
+#   Thus d^2x(t)/dt = eta * x(t) + zeta * dx(t)/dt
+
+DLOmodel <- function(t, prevState, parms) {
+  x <- prevState[1] # x[t]
+  y <- prevState[2] # dx[t]
+  
+  with(as.list(parms), {
+    dx <- y
+    dy <- parms[1]*x + parms[2]*y
+    res<-c(dx,dy)
+    list(res)
+  }
+  )
+}
+
+# ----------------------------------
+# Simulate and plot one oscillator.
+
+eta_malereceiveX <- -1.45
+zeta_malereceiveX <- .2 # had to adjust this. Using est from model yielded enormous values
+xstart_malereceiveX <- c(x = 0.25107549, y = -0.6503902) # not sure this Y start val is correct
+# xstart_malereceiveX <- c(x = 1, y = 0.25107549) 
+
+
+out1_malereceiveX <- as.data.frame(lsoda(xstart_malereceiveX, theTimes, DLOmodel, parms=c(eta_malereceiveX, zeta_malereceiveX)))
+
+pdf("predictionplot_malereceive_femalepartner_dots.pdf", height=5, width=5)
+plot(c(min(theTimes), max(theTimes)), c(-10, 11),
+     xlab="Time",
+     ylab="X",
+     type='n')
+lines(out1_malereceiveX$time, out1_malereceiveX$x, type='p', lwd=2, col=2)
+lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', lty=2, col=1)
+dev.off()
+
+
+
+pdf("predictionplot_malereceive_femalepartner_lines.pdf", height=5, width=5)
+plot(c(1, 30), c(-10, 11),
+     xlab="X",
+     ylab="dX/dt",
+     type='n')
+lines(out1_malereceiveX$time, out1_malereceiveX$x, type='l', lwd=3, col="deeppink")
+lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', col=1)
+dev.off()
+
+
+
+
+plot(c(1, 30), c(-3, 3),
+     xlab="Time",
+     ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
+lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
+lines(kzData1b$time.r, kzData1b$base, type='l', lty=1, col=1)
+lines(kzData1b$time.r[order(kzData1b$time.r)], 
+      kzData1b$rsa.basec[order(kzData1b$time)], 
+      xlim=range(kzData1b$time), ylim=range(kzData1b$rsa.basec), 
+      pch=16, col = "deeppink", lwd = 2)
+
+
+
+
+
+
+
+## for Male Partner:
+
+
+eta_malereceiveY <- -.71
+zeta_malereceiveY <- .08
+xstart_malereceiveY <- c(x = 0.25107549, y = -0.6503902)
+
+
+out1_malereceiveY <- as.data.frame(lsoda(xstart_malereceiveY, theTimes, DLOmodel, parms=c(eta_malereceiveY, zeta_malereceiveY)))
+
+pdf("predictionplot_malereceive_malepartner_dots.pdf", height=5, width=5)
+plot(c(min(theTimes), max(theTimes)), c(-10, 11),
+     xlab="Time",
+     ylab="X",
+     type='n')
+lines(out1_malereceiveY$time, out1_malereceiveY$x, type='p', lwd=2, col=2)
+lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', lty=2, col=1)
+dev.off()
+
+
+
+pdf("predictionplot_malereceive_malepartner_lines.pdf", height=5, width=5)
+plot(c(1, 30), c(-10, 11),
+     xlab="X",
+     ylab="dX/dt",
+     type='n')
+lines(out1_malereceiveY$time, out1_malereceiveY$x, type='l', lwd=3, col="blue")
+lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', col=1)
+dev.off()
+
+
+
+
 
 ##### with KZ data with 1 Dyad - Female Receive/Male Provide #####
 
