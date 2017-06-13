@@ -34,7 +34,7 @@ describe(tData)
 # ----------------------------------
 # Plot the time series.
 
-##pdf("CoupledTimeSeries.#pdf", height=5, width=6)
+###pdf("CoupledTimeSeries.#pdf", height=5, width=6)
 plot(c(1, dim(tData)[1]), c(-10, 10),
      xlab="Time",
      ylab="Score",
@@ -42,7 +42,7 @@ plot(c(1, dim(tData)[1]), c(-10, 10),
 lines(c(1:dim(tData)[1]), tData[,1], type='p', lwd=2, col='red')
 lines(c(1:dim(tData)[1]), tData[,2], type='p', lwd=2, col='blue')
 lines(c(1, dim(tData)[1]), c(-0, 0), type='l', lty=1, col=1)
-##dev.off()
+###dev.off()
 
 
 
@@ -226,17 +226,17 @@ acf(tData2)
 
 
 
-pdf("Raw_Data_168_femaleprovide.pdf", height = 6, width = 5)
+##pdf("Raw_Data_168_femaleprovide.pdf", height = 6, width = 5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
 lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
 lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
 lines(kzData1b$time.r, kzData1b$base, type='l', lty=1, col=1)
-dev.off()
+##dev.off()
 
 
-pdf("Raw_Data_168_femaleprovide_withlines.pdf", height = 6, width = 5)
+#pdf("Raw_Data_168_femaleprovide_withlines.pdf", height = 6, width = 5)
   plot(c(1, 30), c(-5, 5),
        xlab="Time",
        ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
@@ -251,7 +251,7 @@ pdf("Raw_Data_168_femaleprovide_withlines.pdf", height = 6, width = 5)
         kzData1b$b.rsa.basec[order(kzData1b$time)], 
         xlim=range(kzData1b$time), ylim=range(kzData1b$b.rsa.basec), 
         pch=16, col = "blue", lwd = 2)
-dev.off()
+#dev.off()
 
 
 
@@ -444,7 +444,7 @@ xstart_malereceiveX <- c(x = 1, y = 0.25107549) # not sure this Y start val is c
 
 out1_malereceiveX <- as.data.frame(lsoda(xstart_malereceiveX, theTimes2, DLOmodel, parms=c(eta_malereceiveX, zeta_malereceiveX)))
 
-#pdf("predictionplot_malereceive_femalepartner_dots.pdf", height=5, width=5)
+##pdf("predictionplot_malereceive_femalepartner_dots.pdf", height=5, width=5)
 plot(c(min(theTimes), max(theTimes)), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
@@ -453,11 +453,11 @@ lines(out1_malereceiveX$time, out1_malereceiveX$x, type='p', lwd=2, col="gray")
 lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', col=1)
 lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
 
-#dev.off()
+##dev.off()
 
 
 
-pdf("predictionplot_malereceive_femalepartner_lines.pdf", height=6, width=5)
+#pdf("predictionplot_malereceive_femalepartner_lines.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
@@ -465,17 +465,17 @@ plot(c(1, 30), c(-5, 5),
 lines(out1_malereceiveX$time, out1_malereceiveX$x, type='l', lwd=5, col="pink")
 lines(c(min(theTimes2), max(theTimes2)), c(-0, 0), type='l', col=1)
 lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
-dev.off()
+#dev.off()
 
 
-pdf("predictionplot_malereceive_femalepartner_noraw.pdf", height=6, width=5)
+#pdf("predictionplot_malereceive_femalepartner_noraw.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
      type='n', main = "Female Provide / Male Receive \nFemale Partner")
 lines(out1_malereceiveX$time, out1_malereceiveX$x, type='l', lwd=5, col="pink")
 lines(c(min(theTimes2), max(theTimes2)), c(-0, 0), type='l', col=1)
-dev.off()
+#dev.off()
 
 
 
@@ -487,7 +487,7 @@ xstart_malereceiveY <- c(x = 1, y = -0.6503902)
 
 out1_malereceiveY <- as.data.frame(lsoda(xstart_malereceiveY, theTimes2, DLOmodel, parms=c(eta_malereceiveY, zeta_malereceiveY)))
 
-#pdf("predictionplot_malereceive_malepartner_dots.pdf", height=6, width=5)
+##pdf("predictionplot_malereceive_malepartner_dots.pdf", height=6, width=5)
 plot(c(min(theTimes), max(theTimes)), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
@@ -495,10 +495,10 @@ plot(c(min(theTimes), max(theTimes)), c(-5, 5),
 lines(out1_malereceiveY$time, out1_malereceiveY$x, type='p', lwd=2, col="gray")
 lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', col=1)
 lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
-#dev.off()
+##dev.off()
 
 
-pdf("predictionplot_malereceive_malepartner_lines.pdf", height=6, width=5)
+#pdf("predictionplot_malereceive_malepartner_lines.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
@@ -506,23 +506,23 @@ plot(c(1, 30), c(-5, 5),
 lines(out1_malereceiveY$time, out1_malereceiveY$x, type='l', lwd=5, col="lightblue")
 lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', col=1)
 lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
-dev.off()
+#dev.off()
 
 cor.test(out1_malereceiveY$x, kzData1b$b.rsa.basec)
 
-pdf("predictionplot_malereceive_malepartner_noraw.pdf", height=6, width=5)
+#pdf("predictionplot_malereceive_malepartner_noraw.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
      type='n', main = "Female Provide / Male Receive \nMale Partner")
 lines(out1_malereceiveY$time, out1_malereceiveY$x, type='l', lwd=5, col="lightblue")
 lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', col=1)
-dev.off()
+#dev.off()
 
 
 
 ## both partners on same plot
-pdf("predictionplot_malereceive_both.pdf", height=6, width=5)
+#pdf("predictionplot_malereceive_both.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
@@ -533,7 +533,7 @@ lines(out1_malereceiveX$time, out1_malereceiveX$x, type='l', lwd=5, col="pink")
 lines(c(min(theTimes2), max(theTimes2)), c(-0, 0), type='l', col=1)
 lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
 lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
-dev.off()
+#dev.off()
 
 
 
@@ -553,17 +553,17 @@ acf(tData2b)
 
 
 
-pdf("Raw_Data_168_maleprovide.pdf", height = 6, width = 5)
+#pdf("Raw_Data_168_maleprovide.pdf", height = 6, width = 5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Male Provide / Female Receive", col = "white")
 lines(kzData1c$time.r, kzData1c$rsa.basec, type='p', lwd=2, col='deeppink')
 lines(kzData1c$time.r, kzData1c$b.rsa.basec, type='p', lwd=2, col='blue')
 lines(kzData1c$time.r, kzData1c$base, type='l', lty=1, col=1)
-dev.off()
+#dev.off()
 
 
-pdf("Raw_Data_168_maleprovide_withlines.pdf", height = 6, width = 5)
+#pdf("Raw_Data_168_maleprovide_withlines.pdf", height = 6, width = 5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Male Provide / Female Receive", col = "white")
@@ -578,7 +578,7 @@ lines(kzData1c$time.r[order(kzData1c$time.r)],
       kzData1c$b.rsa.basec[order(kzData1c$time)], 
       xlim=range(kzData1c$time), ylim=range(kzData1c$b.rsa.basec), 
       pch=16, col = "blue", lwd = 2)
-dev.off()
+#dev.off()
 
 
 
@@ -740,7 +740,7 @@ xstart_femalereceiveX <- c(x = 1, y = 0.28618349) # not sure this Y start val is
 out1_femalereceiveX <- as.data.frame(lsoda(xstart_femalereceiveX, theTimes2, DLOmodel, parms=c(eta_femalereceiveX, zeta_femalereceiveX)))
 
 
-pdf("predictionplot_femalereceive_femalepartner_lines.pdf", height=6, width=5)
+#pdf("predictionplot_femalereceive_femalepartner_lines.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
@@ -748,16 +748,16 @@ plot(c(1, 30), c(-5, 5),
 lines(out1_femalereceiveX$time, out1_femalereceiveX$x, type='l', lwd=5, col="pink")
 lines(c(min(theTimes2), max(theTimes2)), c(-0, 0), type='l', col=1)
 lines(kzData1c$time.r, kzData1c$rsa.basec, type='p', lwd=2, col='deeppink')
-dev.off()
+#dev.off()
 
-pdf("predictionplot_femalereceive_femalepartner_noraw.pdf", height=6, width=5)
+#pdf("predictionplot_femalereceive_femalepartner_noraw.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
      type='n', main = "Male Provide / Female Receive \nFemale Partner")
 lines(out1_femalereceiveX$time, out1_femalereceiveX$x, type='l', lwd=5, col="pink")
 lines(c(min(theTimes2), max(theTimes2)), c(-0, 0), type='l', col=1)
-dev.off()
+#dev.off()
 
 
 
@@ -771,7 +771,7 @@ xstart_femalereceiveY <- c(x = 1, y = 0.07249779)
 out1_femalereceiveY <- as.data.frame(lsoda(xstart_femalereceiveY, theTimes2, DLOmodel, parms=c(eta_femalereceiveY, zeta_femalereceiveY)))
 
 
-pdf("predictionplot_femalereceive_malepartner_lines.pdf", height=6, width=5)
+#pdf("predictionplot_femalereceive_malepartner_lines.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
@@ -779,22 +779,22 @@ plot(c(1, 30), c(-5, 5),
 lines(out1_femalereceiveY$time, out1_femalereceiveY$x, type='l', lwd=5, col="lightblue")
 lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', col=1)
 lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
-dev.off()
+#dev.off()
 
 
-pdf("predictionplot_femalereceive_malepartner_noraw.pdf", height=6, width=5)
+#pdf("predictionplot_femalereceive_malepartner_noraw.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
      type='n', main = "Male Provide / Female Receive \nMale Partner")
 lines(out1_femalereceiveY$time, out1_femalereceiveY$x, type='l', lwd=5, col="lightblue")
 lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', col=1)
-dev.off()
+#dev.off()
 
 
 
 ## both partners on same plot
-pdf("predictionplot_femalereceive_both.pdf", height=6, width=5)
+#pdf("predictionplot_femalereceive_both.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
@@ -805,7 +805,7 @@ lines(out1_femalereceiveX$time, out1_femalereceiveX$x, type='l', lwd=5, col="pin
 lines(c(min(theTimes2), max(theTimes2)), c(-0, 0), type='l', col=1)
 lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
 lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
-dev.off()
+#dev.off()
 
 
 
