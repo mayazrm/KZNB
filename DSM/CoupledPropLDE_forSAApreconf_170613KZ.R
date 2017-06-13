@@ -56,17 +56,17 @@ acf(tData2)
 
 
 
-pdf("Raw_Data_168_femaleprovide.pdf", height = 6, width = 8)
+#pdf("Raw_Data_168_femaleprovide.pdf", height = 6, width = 8)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
 lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
 lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
 lines(kzData1b$time.r, kzData1b$base, type='l', lty=1, col=1)
-dev.off()
+#dev.off()
 
 
-pdf("Raw_Data_168_femaleprovide_withlines.pdf", height = 6, width = 8)
+#pdf("Raw_Data_168_femaleprovide_withlines.pdf", height = 6, width = 8)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
@@ -81,7 +81,7 @@ lines(kzData1b$time.r[order(kzData1b$time.r)],
       kzData1b$b.rsa.basec[order(kzData1b$time)], 
       xlim=range(kzData1b$time), ylim=range(kzData1b$b.rsa.basec), 
       pch=16, col = "blue", lwd = 2)
-dev.off()
+#dev.off()
 
 
 
@@ -287,7 +287,7 @@ lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
 
 
 
-pdf("predictionplot_malereceive_femalepartner_lines.pdf", height=6, width=5)
+#pdf("predictionplot_malereceive_femalepartner_lines.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
@@ -295,17 +295,17 @@ plot(c(1, 30), c(-5, 5),
 lines(out1_malereceiveX$time, out1_malereceiveX$x, type='l', lwd=5, col="pink")
 lines(c(min(theTimes2), max(theTimes2)), c(-0, 0), type='l', col=1)
 lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
-dev.off()
+#dev.off()
 
 
-pdf("predictionplot_malereceive_femalepartner_noraw.pdf", height=6, width=5)
+#pdf("predictionplot_malereceive_femalepartner_noraw.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
      type='n', main = "Female Provide / Male Receive \nFemale Partner")
 lines(out1_malereceiveX$time, out1_malereceiveX$x, type='l', lwd=5, col="pink")
 lines(c(min(theTimes2), max(theTimes2)), c(-0, 0), type='l', col=1)
-dev.off()
+#dev.off()
 
 
 
@@ -328,7 +328,7 @@ lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
 #dev.off()
 
 
-pdf("predictionplot_malereceive_malepartner_lines.pdf", height=6, width=5)
+#pdf("predictionplot_malereceive_malepartner_lines.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
@@ -336,23 +336,23 @@ plot(c(1, 30), c(-5, 5),
 lines(out1_malereceiveY$time, out1_malereceiveY$x, type='l', lwd=5, col="lightblue")
 lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', col=1)
 lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
-dev.off()
+#dev.off()
 
-cor.test(out1_malereceiveY$x, kzData1b$b.rsa.basec)
+#cor.test(out1_malereceiveY$x, kzData1b$b.rsa.basec)
 
-pdf("predictionplot_malereceive_malepartner_noraw.pdf", height=6, width=5)
+#pdf("predictionplot_malereceive_malepartner_noraw.pdf", height=6, width=5)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
      type='n', main = "Female Provide / Male Receive \nMale Partner")
 lines(out1_malereceiveY$time, out1_malereceiveY$x, type='l', lwd=5, col="lightblue")
 lines(c(min(theTimes), max(theTimes)), c(-0, 0), type='l', col=1)
-dev.off()
+#dev.off()
 
 
 
 ## both partners on same plot
-pdf("predictionplot_malereceive_both.pdf", height=6, width=8)
+#pdf("predictionplot_malereceive_both.pdf", height=6, width=8)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)",
@@ -363,7 +363,7 @@ lines(out1_malereceiveX$time, out1_malereceiveX$x, type='l', lwd=5, col="pink")
 lines(c(min(theTimes2), max(theTimes2)), c(-0, 0), type='l', col=1)
 lines(kzData1b$time.r, kzData1b$b.rsa.basec, type='p', lwd=2, col='blue')
 lines(kzData1b$time.r, kzData1b$rsa.basec, type='p', lwd=2, col='deeppink')
-dev.off()
+#dev.off()
 
 
 
