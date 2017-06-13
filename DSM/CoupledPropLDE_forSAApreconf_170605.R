@@ -224,9 +224,13 @@ colnames(tData2) <- c("x", "y")
 
 acf(tData2)
 
+tData2a <- as.data.frame(cbind(kzData1b$rsa.basec, kzData1b$b.rsa.basec))
+colnames(tData2a) <- c("Male", "Female")
+
+acf(tData2a)
 
 
-##pdf("Raw_Data_178_femaleprovide.#pdf", height = 6, width = 5)
+##pdf("Raw_Data_168_femaleprovide.#pdf", height = 6, width = 5)
 plot(c(1, 30), c(-3, 3),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
@@ -236,7 +240,7 @@ lines(kzData1b$time.r, kzData1b$base, type='l', lty=1, col=1)
 ##dev.off()
 
 
-#pdf("Raw_Data_178_femaleprovide_withlines.#pdf", height = 6, width = 5)
+#pdf("Raw_Data_168_femaleprovide_withlines.#pdf", height = 6, width = 5)
   plot(c(1, 30), c(-3, 3),
        xlab="Time",
        ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
@@ -534,7 +538,7 @@ acf(tData2b)
 
 
 
-#pdf("Raw_Data_178_maleprovide.#pdf", height = 6, width = 5)
+#pdf("Raw_Data_168_maleprovide.#pdf", height = 6, width = 5)
 plot(c(1, 30), c(-3, 3),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Male Provide / Female Receive", col = "white")
@@ -544,7 +548,7 @@ lines(kzData1c$time.r, kzData1c$base, type='l', lty=1, col=1)
 #dev.off()
 
 
-#pdf("Raw_Data_178_maleprovide_withlines.#pdf", height = 6, width = 5)
+#pdf("Raw_Data_168_maleprovide_withlines.#pdf", height = 6, width = 5)
 plot(c(1, 30), c(-3, 3),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Male Provide / Female Receive", col = "white")
