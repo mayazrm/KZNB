@@ -66,7 +66,7 @@ lines(kzData1b$time.r, kzData1b$base, type='l', lty=1, col=1)
 #dev.off()
 
 
-#pdf("Raw_Data_168_femaleprovide_withlines.pdf", height = 6, width = 8)
+pdf("Raw_Data_168_femaleprovide_withlines.pdf", height = 6, width = 8)
 plot(c(1, 30), c(-5, 5),
      xlab="Time",
      ylab="RSA (Baseline Centered)", main = "Female Provide / Male Receive", col = "white")
@@ -81,7 +81,7 @@ lines(kzData1b$time.r[order(kzData1b$time.r)],
       kzData1b$b.rsa.basec[order(kzData1b$time)], 
       xlim=range(kzData1b$time), ylim=range(kzData1b$b.rsa.basec), 
       pch=16, col = "blue", lwd = 2)
-#dev.off()
+dev.off()
 
 
 
