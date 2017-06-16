@@ -1,0 +1,65 @@
+
+setwd("~/Google Drive/Columbia/RESEARCH/CURRENT/Random Proj/KZNB/KZNB-master")
+
+rndtzz <- read.csv("rndtzz.csv")
+
+library(rmarkdown)
+library(nlme)
+library(lme4)
+library(ggplot2)
+library(lmerTest)
+#For Bayesian analysis:
+library(brms)
+library(car)
+#For dotplots
+library(Rcmdr)
+
+
+m1 <- (lmer(logrt ~ valenceE + (1 + valenceE| id),  data=rndtzz))
+summary(m1)
+
+
+#Get Ranefs for f01
+#Add ID Column
+#Order by Ranef Size
+m1.ranef<-ranef(m1)$id
+m1.ranef$id <- as.numeric(row.names(m1.ranef))
+m1.ranef$valenceE <- m1.ranef$valenceE -0.16157
+ordm1.ranef <- m1.ranef[order(m1.ranef$valenceE), ]
+
+
+ordm1.ranef1 <- subset(ordm1.ranef, id == 247 | id ==207 |id == 239 | id ==208 | id ==222 |id ==255 | id ==265 | id ==243 | id ==241)
+
+
+#Add Predicted Values to rndtzz
+rndtzz$pred <- fitted(m1)
+
+#Order rndtzz by id, Face-orientation, predicted value
+ordrndtzz <- rndtzz[order(rndtzz$id, 
+                            rndtzz$valenceE, rndtzz$pred), ]
+
+#Select specific cases (3 highest, lowest, & middle)
+ordrndtzz1 <- subset(ordrndtzz, id == 247 | id ==207 |id == 239 | id ==208 | id ==222 |id ==255 | id ==265 | id ==243 | id ==241)
+
+#Panel plots ordered by size of valenceE random effect
+dev.new()
+#stats::windows()
+
+par(mfrow=c(3,3))
+for (i in ordm1.ranef1$id) {
+  plot(jitter(ordrndtzz1$valenceE[ordrndtzz1$id==i], .2), 
+       ordrndtzz1$logrt[ordrndtzz1$id==i],
+       ylab="log RT", xlab="Valence",
+       type="p", pch=19, col="blue", ylim=c(6.25, 7.75), xlim=c(-.6, .6),
+       main=paste(round(ordm1.ranef1$valenceE[ordm1.ranef1$id==i], digits=2), sep = " "))
+  lines(ordrndtzz1$valenceE[ordrndtzz1$id==i], 
+        ordrndtzz1$pred[ordrndtzz1$id==i], lwd=2, col="red")
+}
+
+dev.copy(pdf,filename="valplot3.pdf", w=500, h = 500);
+dev.off ();
+
+png("valplot1.png", w = 900, h=900)
+  dev.off()
+
+
